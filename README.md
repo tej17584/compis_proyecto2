@@ -3,7 +3,7 @@
   <img src="https://images-na.ssl-images-amazon.com/images/I/51FWXX9KWVL._AC_UL600_SR600,600_.jpg" alt="UkronTadd" width="664"> 
 <br>
 <br>
-Proyecto 1: Analizador semántico
+Proyecto 2: Generación de código intermedio
 </h1>
     
 <p align="center">
@@ -17,7 +17,7 @@ Proyecto 1: Analizador semántico
 <p align="center">Alejandro Tejada 17584</p>
 <p align="center">Construccion de compiladores</p>
 <p align="center">Universidad del Valle de Guatemala</p>
-<p align="center">1/09/2021</p>
+<p align="center">16/09/2021</p>
 <hr />
 
 # Acerca de...
