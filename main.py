@@ -271,6 +271,11 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                 if ctx.field_var().array_id().int_literal() is not None:
                     size = int(
                         ctx.field_var().array_id().int_literal().getText())
+                    # agregamos el size del valor
+                    innerSize = 0
+                    innerSize = self.tablaVariables.getSymbolFromTable(tipo)["Size"]
+                    if(innerSize != 0):
+                        size = size * innerSize
 
                 if 'struct' in tipo_array:
                     self.tablaVariables.AddEntryToTable(
@@ -1008,7 +1013,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
         if ctx.var_id() is not None:
             if ctx.var_id().location() is not None:
                 id = ctx.var_id().getChild(0).getText()
-                # self.scope_Actual.valueToTable()
+                self.scope_Actual.valueToTable()
 
                 symbol = self.findVar(id)
                 if symbol == 0:
@@ -1093,11 +1098,11 @@ class DecafAlejandroPrinter(decafAlejandroListener):
             self.errores.AddEntryToTable(
                 0, 0, self.errores.errrorText_MAIN_NOT_EXHISTS)
 
-        self.scope_Actual.valueToTable()
         print('----------> FIN PROGRAMA <--------------')
-
+        self.scope_Actual.valueToTable()
         self.tabla_metodos.valueToTable()
         self.tabla_estructuras.valueToTable()
+
 
 class Compilar():
     def __init__(self, url):

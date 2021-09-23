@@ -66,9 +66,9 @@ class generalSymbolTable():
             'Tipo', 'ID', 'Size', 'Offset', 'IsParameter']
         for i in self.dictSimbolos:
             self.pretty_table.add_row(list(i.values()))
-        """ 
-        print(' --- Tabla simbolos generales ---
-        print(self.pretty_table) """
+
+        print(' --- Tabla simbolos generales ---')
+        print(self.pretty_table)
         self.pretty_table.clear_rows()
 
 
@@ -112,8 +112,8 @@ class tableDictParameters():
         for i in self.dictSimbolos:
             self.pretty_table.add_row(list(i.values()))
 
-        """ print(' --- Tabla parámetros ---')
-        print(self.pretty_table) """
+        print(' --- Tabla parámetros ---')
+        print(self.pretty_table)
         self.pretty_table.clear_rows()
 
     def cleanTable(self):
@@ -167,8 +167,8 @@ class dictTableStruct():
         for i in self.dictSimbolos:
             self.pretty_table.add_row(list(i.values()))
 
-        """ print(' --- Diccionario estructuras ---')
-        print(self.pretty_table) """
+        print(' --- Diccionario estructuras ---')
+        print(self.pretty_table)
         self.pretty_table.clear_rows()
 
     def ExtractInfo(self, parent, scope, tabla_tipo):
@@ -241,8 +241,8 @@ class dictTableMetods():
         for i in self.arrayMetodos:
             self.pretty_table.add_row(list(i.values()))
 
-        #print(' --- Diccionario métodos ---')
-        #print(self.pretty_table)
+        print(' --- Diccionario métodos ---')
+        print(self.pretty_table)
         self.pretty_table.clear_rows()
 
 
@@ -287,6 +287,3 @@ class dictTableVars():
             if type['Tipo'] == typeValue:
                 return type
         return 0
-
-
-

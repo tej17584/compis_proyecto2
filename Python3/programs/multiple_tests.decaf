@@ -39,6 +39,7 @@ class Program {
 		int j;
 		int k;
 		boolean patito;
+		int kk [10];
 
 		i = 0;
 		j=34;
