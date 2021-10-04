@@ -22,6 +22,8 @@ import sys
 from pprint import pprint
 from itertools import groupby
 from symbolTable import *
+# we import Node
+from NodoCodigo import *
 
 
 class MyErrorListener(ErrorListener):
@@ -66,6 +68,9 @@ class DecafAlejandroPrinter(decafAlejandroListener):
         self.tabla_metodos = dictTableMetods()
         self.tabla_estructuras = dictTableStruct()
         self.tabla_parametros = tableDictParameters()
+
+        self.dictNodosCodigoIntermedio = {}
+        self.contadorNodos = 0
 
         self.tipoNodo = {}  # el tipo de nodo de cada valor que iteraremos
 
@@ -273,7 +278,8 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                         ctx.field_var().array_id().int_literal().getText())
                     # agregamos el size del valor
                     innerSize = 0
-                    innerSize = self.tablaVariables.getSymbolFromTable(tipo)["Size"]
+                    innerSize = self.tablaVariables.getSymbolFromTable(tipo)[
+                        "Size"]
                     if(innerSize != 0):
                         size = size * innerSize
 
