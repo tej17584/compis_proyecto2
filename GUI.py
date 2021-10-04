@@ -15,7 +15,7 @@ import os
 import sys
 
 from mainSemantic import Compilar
-from mainGeneracionCodigo import CompilarIntermedio
+from mainIntermedio import CompilarIntermedio
 
 
 # Creating main window class
