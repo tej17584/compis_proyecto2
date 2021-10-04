@@ -14,7 +14,7 @@ from PyQt5.QtCore import *
 import os
 import sys
 
-from main import Compilar
+from mainSemantic import Compilar
 
 
 # Creating main window class

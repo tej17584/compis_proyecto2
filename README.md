@@ -61,7 +61,7 @@ Algunos puntos vistos en este proyecto
 | 5 | `decafAlejandroParser.py` |el parser generador por ANTLR para el proyecto|
 | 6 | `ErrorClass.py` |Una clase de errores para arrays o errores generales|
 | 7 | `funciones.py` |Un python con funciones generales y útiles|
-| 8 | `main.py |programa más importante. Acá se genera la logica, los valores, y se revisan TODAS las reglas semánticas|
+| 8 | `mainSemantic.py |programa más importante. Acá se genera la logica, los valores, y se revisan TODAS las reglas semánticas|
 | 9 | `rúbrica_proyecto_1.pdf` |La rubrica del proyecto|
 | 10 | `symbolTable.py` |Clase que contiene TODAS las declaraciones para las tres tablas de simbolos principales: metodos, variables y estructuras|
 | 11 | `Readme.md` |El readme|
@@ -148,7 +148,7 @@ Algunos puntos vistos en este proyecto
 
         }
   ```
-- Luego, se debe correr el  programa `main.py` y ejecutarlo en una consola. 
+- Luego, se debe correr el  programa `mainSemantic.py` y ejecutarlo en una consola. 
 - Luego debes de seleccionar una opciónn del menú
  ```python
                     '1.😜 Opcion 1: cargar archivo de pruebas y ejecutar'
