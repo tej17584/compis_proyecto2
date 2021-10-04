@@ -32,10 +32,10 @@ class Nodo():
         Retorna la direccion del nodo
         """
         return self.dir
-    
-    def addAddress(self,address ):
+
+    def addAddress(self, address):
         """
-        Agrega codigo al nodito
-        *@param: codigo: el codigo a agregar al nodito
+        Agrega la direccion al nodito
+        *@param: address: la address a agregar al nodito
         """
         self.addres = address
