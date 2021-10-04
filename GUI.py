@@ -15,6 +15,7 @@ import os
 import sys
 
 from mainSemantic import Compilar
+from mainGeneracionCodigo import CompilarIntermedio
 
 
 # Creating main window class
@@ -40,11 +41,20 @@ class MainWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.windowEditor = QWidget()
         self.windowResults = QWidget()
+        self.windowResultsIntermedio = QWidget()
 
         # # AddEntryToTable tabs
         self.tabs.addTab(self.windowEditor, "Editor de código")
         self.tabs.addTab(self.windowResults, "Análisis semántico")
+        self.tabs.addTab(self.windowResultsIntermedio, "Código intermedio")
 
+        self.errorForlog2 = QLabel()
+        self.errorForlog2.setFont(fixedfont)
+        self.errorForlog2.setText("")
+        self.windowResultsIntermedio.layout = QVBoxLayout()
+        self.windowResultsIntermedio.layout.addWidget(self.errorForlog2)
+        self.windowResultsIntermedio.setLayout(
+            self.windowResultsIntermedio.layout)
         # creating a QPlainTextEdit object
         self.editor = QPlainTextEdit()
 
@@ -118,6 +128,11 @@ class MainWindow(QMainWindow):
         compile_action.setStatusTip("Compilar programa actual")
         compile_action.triggered.connect(self.compilarFile)
         file_toolbar.addAction(compile_action)
+
+        intermediate_action = QAction("CompilarIntermedio", self)
+        intermediate_action.setStatusTip("Compilar programa actual")
+        intermediate_action.triggered.connect(self.compilarcodigoIntermedio)
+        file_toolbar.addAction(intermediate_action)
 
         # creating another tool bar for editing text
         edit_toolbar = QToolBar("Editar")
@@ -312,7 +327,37 @@ class MainWindow(QMainWindow):
                         'No se encontraron errores de análisis semántico.')
             self.tabs.setCurrentIndex(1)
 
+    def compilarcodigoIntermedio(self):
+        """
+        Método para generar Codigo intermedio
+        """
+        if self.path is None:
+            return self.file_saveas()
+        self._save_to_path(self.path)
+
+        input = self.path
+
+        if self.editor.toPlainText() != '':
+            programaCompilado = CompilarIntermedio(input)
+
+            if programaCompilado.HasLexicalError():
+                print('No se ha generado nada de codigo intermedio V1.\n ',
+                      programaCompilado.errorFromAntlr.lexicalErrors)
+                errores = '\n'.join(
+                    programaCompilado.errorFromAntlr.lexicalErrors)
+                self.errorForlog2.setText(errores)
+
+            else:
+                if programaCompilado.printer.tipoNodo[programaCompilado.printer.root] == 'error' or len(programaCompilado.printer.errores.errores) > 0:
+                    errores = '\n'.join(
+                        programaCompilado.printer.errores.getAllErrors())
+                    self.errorForlog2.setText(errores)
+                else:
+                    self.errorForlog2.setText(
+                        'No se ha generado nada de codigo intermedio V2')
+            self.tabs.setCurrentIndex(2)
     # save to path method
+
     def _save_to_path(self, path):
 
         # get the text
