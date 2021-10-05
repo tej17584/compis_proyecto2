@@ -1,5 +1,5 @@
 class Program {
-
+	int patito;
 	void main(void)
 	{
 		int i;

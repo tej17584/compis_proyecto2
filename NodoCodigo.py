@@ -10,9 +10,10 @@ V 2.0
 
 class Nodo():
 
-    def __init__(self) -> None:
+    def __init__(self, numeroNodo) -> None:
         self.code = ""
-        self.addres = ""
+        self.address = ""
+        self.correlativo = numeroNodo
 
     def getCode(self):
         """
@@ -27,15 +28,15 @@ class Nodo():
         """
         self.code = codigo
 
-    def getDirection(self):
+    def getAddress(self):
         """
         Retorna la direccion del nodo
         """
-        return self.dir
+        return self.address
 
     def addAddress(self, address):
         """
         Agrega la direccion al nodito
         *@param: address: la address a agregar al nodito
         """
-        self.addres = address
+        self.address = address
