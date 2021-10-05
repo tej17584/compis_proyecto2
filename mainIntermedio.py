@@ -75,7 +75,8 @@ class DecafAlejandroPrinter(decafAlejandroListener):
         self.tipoNodo = {}  # el tipo de nodo de cada valor que iteraremos
         self.dictCodigoIntermedio = {}  # el tipo de nodo de cada valor que iteraremos
         self.contadorGlobalNodos = 0
-        self.contadorTemporales = 1
+        self.contadorTemporales = 0
+        self.arrayProduccionesTerminadas = []
         super().__init__()
 
     def popScope(self):
@@ -122,7 +123,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
             for scope in innerArray:
                 innerVar2 = scope.getSymbolFromTable(variable)
                 if innerVar2 != 0:
-                    return innerVar2
+                    return innerVar2, "GLOBAL"
             return 0
         else:
             if(len(self.ambitos) == 0):
@@ -139,7 +140,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
         variable, contexto = self.findVarV2(varId)
         innerString = ""
         if(contexto == "GLOBAL"):
-            innerString = f'G[{variable["Offset"]}]'
+            innerString = f'gp[{variable["Offset"]}]'
         elif(contexto == "ANOTHER"):
             innerString = f'fp[{variable["Offset"]}]'
         return innerString
@@ -490,6 +491,13 @@ class DecafAlejandroPrinter(decafAlejandroListener):
             elif ctx.array_id() is not None:
                 self.tipoNodo[ctx] = self.tipoNodo[ctx.getChild(0)]
 
+        if ctx not in self.dictCodigoIntermedio.keys():
+            if ctx.var_id() is not None:
+                self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+                    0)]
+            elif ctx.array_id() is not None:
+                self.dictCodigoIntermedio[ctx] = self.tipoNodo[ctx.getChild(0)]
+
     def enterField_declr(self, ctx: decafAlejandroParser.Field_declrContext):
         tipo = ctx.var_type().getText()
 
@@ -725,21 +733,38 @@ class DecafAlejandroPrinter(decafAlejandroListener):
         self.tipoNodo[ctx] = self.VOID
 
     def exitStatement_assign(self, ctx: decafAlejandroParser.Statement_assignContext):
-        error = self.ChildrenHasError(ctx)
+        """ error = self.ChildrenHasError(ctx)
         if error:
             self.tipoNodo[ctx] = self.ERROR
-            return
-
+            return """
         left = self.tipoNodo[ctx.location()]
         right = self.tipoNodo[ctx.expr()]
         result_type = self.VOID
 
-        if left != right:
+        nodoI = self.dictCodigoIntermedio[ctx.location()]
+        nodoE = self.dictCodigoIntermedio[ctx.expr()]
+
+        # creamos un nuevo nodo
+        nodoS = Nodo(self.contadorGlobalNodos)
+        self.contadorGlobalNodos += 1
+        # generamos el codigo intermedio necesario para la id
+        id = ctx.location().var_id().getText()
+        innerIntermedio = self.generateTopeGet(id)
+        # concatenamos codigo segun regla S.codigo = E.codigo ||
+        # gen(tope.get (id.lexema) '=' E.dir)
+        codigoAunado = nodoE.getCode() + (innerIntermedio + " = " + nodoE.getAddress())
+        # agregamos el codigo para ID
+        nodoS.addCode(codigoAunado)
+        # agregamos el dict de nodos globales
+        self.dictCodigoIntermedio[ctx] = nodoS
+        self.arrayProduccionesTerminadas.append(nodoS)
+
+        """ if left != right:
             result_type = self.ERROR
             line = ctx.assign_op().start.line
             col = ctx.assign_op().start.column
             self.errores.AddEntryToTable(
-                line, col, self.errores.errrorText_EQUALS)
+                line, col, self.errores.errrorText_EQUALS) """
         self.tipoNodo[ctx] = result_type
 
     def exitExpr(self, ctx: decafAlejandroParser.ExprContext):
@@ -789,10 +814,8 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                     sumaNode.addAddress(innerTemporal)
                     # anidamos codigo por la regla semantica
                     # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
-                    codigoAunado = NodoE1.getCode() + '\n'
-                    NodoE2.getCode() + '\n'
-                    (sumaNode.getAddress() + " = " +
-                     NodoE1.getAddress() + " + " + NodoE2.getAddress())
+                    codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
+                                                                                 NodoE1.getAddress() + " + " + NodoE2.getAddress() + " ") + '\n'
                     # agregamos el codigo al nodo de E
                     sumaNode.addCode(codigoAunado)
                     # agregamos el nodo a los nodos globales
@@ -1072,10 +1095,10 @@ class DecafAlejandroPrinter(decafAlejandroListener):
             return result_type
 
     def enterLocation(self, ctx: decafAlejandroParser.LocationContext):
-        parent = ctx.parentCtx
+        """ parent = ctx.parentCtx
         if parent in self.tipoNodo.keys():
             if self.tipoNodo[parent] == self.ERROR:
-                self.tipoNodo[ctx] = self.ERROR
+                self.tipoNodo[ctx] = self.ERROR """
 
         if ctx in self.tipoNodo.keys():
             return
@@ -1176,6 +1199,10 @@ class DecafAlejandroPrinter(decafAlejandroListener):
             self.tipoNodo[ctx] = self.ERROR
             self.errores.AddEntryToTable(
                 0, 0, self.errores.errrorText_MAIN_NOT_EXHISTS)
+
+        # mostramos el codigo terminado
+        for x in self.arrayProduccionesTerminadas:
+            print(x.getCode())
 
         print('----------> FIN PROGRAMA <--------------')
         """ self.scope_Actual.valueToTable()

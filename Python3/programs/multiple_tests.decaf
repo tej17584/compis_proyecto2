@@ -1,11 +1,13 @@
-class Program {
-	int patito;
+class Program{
+	int d;
+
 	void main(void)
 	{
-		int i;
-		int j;
-		int k;
-		i = j + k;
+		int a;
+		int b;
+		int c;
+		c = a + b;
+		d = a + b;
 	}
 
 }
