@@ -8,9 +8,9 @@ V 2.0
 """
 
 # ZONA DE IMPORTS
-from decafAlejandroLexer import decafAlejandroLexer
-from decafAlejandroParser import decafAlejandroParser
-from decafAlejandroListener import decafAlejandroListener
+from decafAlejandrov2Lexer import decafAlejandroV2Lexer
+from decafAlejandroV2Parser import decafAlejandroV2Parser
+from decafAlejandroV2Listener import decafAlejandroV2Listener
 from antlr4.error.ErrorListener import ErrorListener
 from antlr4 import *
 from antlr4.tree.Trees import TerminalNode
@@ -43,7 +43,7 @@ class MyErrorListener(ErrorListener):
         return self.hasErrors
 
 
-class DecafAlejandroPrinter(decafAlejandroListener):
+class DecafAlejandroPrinter(decafAlejandroV2Listener):
     def __init__(self):
         self.root = None
         # data types primitivos
@@ -173,20 +173,20 @@ class DecafAlejandroPrinter(decafAlejandroListener):
         *@param ctx: el contexto
         """
         non_terminals = [self.tipoNodo[i] for i in ctx.children if type(
-            i) in [decafAlejandroParser.LocationContext,
-                   decafAlejandroParser.ExprContext,
-                   decafAlejandroParser.BlockContext,
-                   decafAlejandroParser.DeclarationContext]]
+            i) in [decafAlejandroV2Parser.LocationContext,
+                   decafAlejandroV2Parser.ExprContext,
+                   decafAlejandroV2Parser.BlockContext,
+                   decafAlejandroV2Parser.DeclarationContext]]
         if self.ERROR in non_terminals:
             return True
         return False
 
-    def enterProgram(self, ctx: decafAlejandroParser.ProgramContext):
+    def enterProgram(self, ctx: decafAlejandroV2Parser.ProgramContext):
         print('----------> INICIO COMPILACION <--------------')
         self.root = ctx
         self.scope_Actual = generalSymbolTable()
 
-    def enterMethod_declr(self, ctx: decafAlejandroParser.Method_declrContext):
+    def enterMethod_declr(self, ctx: decafAlejandroV2Parser.Method_declrContext):
         metodo = ctx.method_name().getText()
         parameters = []
 
@@ -201,7 +201,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
             hijos = ctx.getChildCount()
 
             for i in range(hijos):
-                if isinstance(ctx.getChild(i), decafAlejandroParser.Var_typeContext):
+                if isinstance(ctx.getChild(i), decafAlejandroV2Parser.Var_typeContext):
                     typeParameter = self.data_type[ctx.getChild(i).getText()]
                     idParameter = ctx.getChild(i + 1).getText()
                     if idParameter in [i['Id'] for i in parameters]:
@@ -233,7 +233,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
             self.scope_Actual.AddEntryToTable(
                 parameter['Tipo'], parameter['Id'], size, offset, True)
 
-    def exitMethod_declr(self, ctx: decafAlejandroParser.Method_declrContext):
+    def exitMethod_declr(self, ctx: decafAlejandroV2Parser.Method_declrContext):
         metodo = ctx.method_name().getText()
         # ALEJANDRO CHANGES ---
         self.popMethodActual()
@@ -265,7 +265,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
 
         self.tipoNodo[ctx] = self.VOID
 
-    def enterVardeclr(self, ctx: decafAlejandroParser.VardeclrContext):
+    def enterVardeclr(self, ctx: decafAlejandroV2Parser.VardeclrContext):
         tipo = ctx.var_type().getText()
 
         # TOMAR EN CUENTA DECLARACION DE ARRAY'S
@@ -366,10 +366,10 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                 self.errores.AddEntryToTable(
                     line, col, self.errores.errrorText_VARDUPLICADA)
 
-    def enterStruct_declr(self, cstx: decafAlejandroParser.Struct_declrContext):
+    def enterStruct_declr(self, cstx: decafAlejandroV2Parser.Struct_declrContext):
         self.addScope()
 
-    def exitStruct_declr(self, ctx: decafAlejandroParser.Struct_declrContext):
+    def exitStruct_declr(self, ctx: decafAlejandroV2Parser.Struct_declrContext):
         tipo = ctx.getChild(0).getText() + ctx.getChild(1).getText()
 
         if self.tablaVariables.getSymbolFromTable(tipo) == 0:
@@ -393,14 +393,14 @@ class DecafAlejandroPrinter(decafAlejandroListener):
             self.errores.AddEntryToTable(
                 line, col, self.errores.errrorText_VARDUPLICADA)
 
-    def enterVar_id(self, ctx: decafAlejandroParser.Var_idContext):
+    def enterVar_id(self, ctx: decafAlejandroV2Parser.Var_idContext):
         parent = ctx.parentCtx
         if parent in self.tipoNodo.keys():
             self.tipoNodo[ctx] = self.tipoNodo[parent]
             # we double the instruction -ALEJANDRO CHANGES
             self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[parent]
 
-    def exitVar_id(self, ctx: decafAlejandroParser.Var_idContext):
+    def exitVar_id(self, ctx: decafAlejandroV2Parser.Var_idContext):
         parent = ctx.parentCtx
         if parent in self.tipoNodo.keys() or ctx in self.tipoNodo.keys():
             return
@@ -423,7 +423,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
         else:
             self.tipoNodo[ctx] = self.VOID
 
-    def exitVardeclr(self, ctx: decafAlejandroParser.VardeclrContext):
+    def exitVardeclr(self, ctx: decafAlejandroV2Parser.VardeclrContext):
         self.tipoNodo[ctx] = self.VOID
         for child in ctx.children:
             if not isinstance(child, TerminalNode):
@@ -431,24 +431,24 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                     self.tipoNodo[ctx] = self.ERROR
                     break
 
-    def exitString_literal(self, ctx: decafAlejandroParser.String_literalContext):
+    def exitString_literal(self, ctx: decafAlejandroV2Parser.String_literalContext):
         self.tipoNodo[ctx] = self.STRING
 
-    def exitInt_literal(self, ctx: decafAlejandroParser.Int_literalContext):
+    def exitInt_literal(self, ctx: decafAlejandroV2Parser.Int_literalContext):
         self.tipoNodo[ctx] = self.INT
 
-    def exitBool_literal(self, ctx: decafAlejandroParser.Bool_literalContext):
+    def exitBool_literal(self, ctx: decafAlejandroV2Parser.Bool_literalContext):
         self.tipoNodo[ctx] = self.BOOLEAN
 
-    def exitLiteral(self, ctx: decafAlejandroParser.LiteralContext):
+    def exitLiteral(self, ctx: decafAlejandroV2Parser.LiteralContext):
         self.tipoNodo[ctx] = self.tipoNodo[ctx.getChild(0)]
 
-    def enterArray_id(self, ctx: decafAlejandroParser.Array_idContext):
+    def enterArray_id(self, ctx: decafAlejandroV2Parser.Array_idContext):
         parent = ctx.parentCtx
         if parent in self.tipoNodo.keys():
             self.tipoNodo[ctx] = self.tipoNodo[parent]
 
-    def exitArray_id(self, ctx: decafAlejandroParser.Array_idContext):
+    def exitArray_id(self, ctx: decafAlejandroV2Parser.Array_idContext):
         parent = ctx.parentCtx
         if parent in self.tipoNodo.keys() or ctx in self.tipoNodo.keys():
             return
@@ -481,10 +481,10 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                 tipo_var = self.findVar(ctx.var_id().getText())
                 self.CheckErrorInArrayId(ctx, tipo, tipo_var)
 
-    def exitVar_type(self, ctx: decafAlejandroParser.Var_typeContext):
+    def exitVar_type(self, ctx: decafAlejandroV2Parser.Var_typeContext):
         self.tipoNodo[ctx] = self.VOID
 
-    def exitField_var(self, ctx: decafAlejandroParser.Field_varContext):
+    def exitField_var(self, ctx: decafAlejandroV2Parser.Field_varContext):
         if ctx not in self.tipoNodo.keys():
             if ctx.var_id() is not None:
                 self.tipoNodo[ctx] = self.tipoNodo[ctx.getChild(0)]
@@ -498,11 +498,11 @@ class DecafAlejandroPrinter(decafAlejandroListener):
             elif ctx.array_id() is not None:
                 self.dictCodigoIntermedio[ctx] = self.tipoNodo[ctx.getChild(0)]
 
-    def enterField_declr(self, ctx: decafAlejandroParser.Field_declrContext):
+    def enterField_declr(self, ctx: decafAlejandroV2Parser.Field_declrContext):
         tipo = ctx.var_type().getText()
 
         for child in ctx.children:
-            if not isinstance(child, TerminalNode) and isinstance(child, decafAlejandroParser.Field_varContext):
+            if not isinstance(child, TerminalNode) and isinstance(child, decafAlejandroV2Parser.Field_varContext):
                 id = child.var_id().getText()
 
                 if self.scope_Actual.getSymbolFromTable(id) == 0:
@@ -519,7 +519,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                     self.errores.AddEntryToTable(
                         line, col, self.errores.errrorText_VARDUPLICADA)
 
-    def exitField_declr(self, ctx: decafAlejandroParser.Field_declrContext):
+    def exitField_declr(self, ctx: decafAlejandroV2Parser.Field_declrContext):
         self.tipoNodo[ctx] = self.VOID
         for child in ctx.children:
             if not isinstance(child, TerminalNode):
@@ -527,16 +527,16 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                     self.tipoNodo[ctx] = self.ERROR
                     break
 
-    def enterBlock(self, ctx: decafAlejandroParser.BlockContext):
+    def enterBlock(self, ctx: decafAlejandroV2Parser.BlockContext):
         parent = ctx.parentCtx
 
-        if not isinstance(parent, decafAlejandroParser.Method_declrContext):
+        if not isinstance(parent, decafAlejandroV2Parser.Method_declrContext):
             self.addScope()
 
-    def exitBlock(self, ctx: decafAlejandroParser.BlockContext):
+    def exitBlock(self, ctx: decafAlejandroV2Parser.BlockContext):
         parent = ctx.parentCtx
 
-        if not isinstance(parent, decafAlejandroParser.Method_declrContext):
+        if not isinstance(parent, decafAlejandroV2Parser.Method_declrContext):
             self.popScope()
 
         for child in ctx.children:
@@ -546,7 +546,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                     return
 
         hijos_tipo = [self.tipoNodo[i] for i in ctx.children if isinstance(
-            i, decafAlejandroParser.StatementContext)]
+            i, decafAlejandroV2Parser.StatementContext)]
         filtered = list(filter(lambda tipo: tipo != self.VOID, hijos_tipo))
         if len(filtered) == 0:
             self.tipoNodo[ctx] = self.VOID
@@ -561,12 +561,12 @@ class DecafAlejandroPrinter(decafAlejandroListener):
         else:
             self.tipoNodo[ctx] = self.ERROR
 
-    def exitMethod_call(self, ctx: decafAlejandroParser.Method_callContext):
+    def exitMethod_call(self, ctx: decafAlejandroV2Parser.Method_callContext):
         name = ctx.method_name().getText()
         parameters = []
 
         for child in ctx.children:
-            if isinstance(child, decafAlejandroParser.ExprContext):
+            if isinstance(child, decafAlejandroV2Parser.ExprContext):
                 parameters.append(child)
 
         method_info = self.tabla_metodos.getSymbolFromTable(name)
@@ -616,7 +616,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
         nodo = ctx.parentCtx
         hijos = [str(type(i))
                  for i in nodo.children if not isinstance(i, TerminalNode)]
-        while str(decafAlejandroParser.Return_typeContext) not in hijos:
+        while str(decafAlejandroV2Parser.Return_typeContext) not in hijos:
             nodo = nodo.parentCtx
             hijos = [str(type(i))
                      for i in nodo.children if not isinstance(i, TerminalNode)]
@@ -626,7 +626,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
         else:
             return nodo.return_type().getText()
 
-    def exitStatement_if(self, ctx: decafAlejandroParser.Statement_ifContext):
+    def exitStatement_if(self, ctx: decafAlejandroV2Parser.Statement_ifContext):
         error = self.ChildrenHasError(ctx)
         if error:
             self.tipoNodo[ctx] = self.ERROR
@@ -642,7 +642,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
             return
 
         hijos_tipo = [i for i in ctx.children if isinstance(
-            i, decafAlejandroParser.BlockContext)]
+            i, decafAlejandroV2Parser.BlockContext)]
         tipo_return = self.GetMethodType(ctx)
         if len(hijos_tipo) == 1:
             hijo_1 = hijos_tipo.pop()
@@ -687,7 +687,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
             else:
                 self.tipoNodo[ctx] = self.ERROR
 
-    def exitStatement_while(self, ctx: decafAlejandroParser.Statement_whileContext):
+    def exitStatement_while(self, ctx: decafAlejandroV2Parser.Statement_whileContext):
         error = self.ChildrenHasError(ctx)
         if error:
             self.tipoNodo[ctx] = self.ERROR
@@ -704,11 +704,11 @@ class DecafAlejandroPrinter(decafAlejandroListener):
             return
 
         hijos_tipo = [self.tipoNodo[i] for i in ctx.children if isinstance(
-            i, decafAlejandroParser.BlockContext)]
+            i, decafAlejandroV2Parser.BlockContext)]
         if len(hijos_tipo) == 1:
             self.tipoNodo[ctx] = hijos_tipo.pop()
 
-    def exitStatement_return(self, ctx: decafAlejandroParser.Statement_returnContext):
+    def exitStatement_return(self, ctx: decafAlejandroV2Parser.Statement_returnContext):
         error = self.ChildrenHasError(ctx)
         if error:
             self.tipoNodo[ctx] = self.ERROR
@@ -716,7 +716,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
 
         self.tipoNodo[ctx] = self.tipoNodo[ctx.expr()]
 
-    def exitStatement_methodcall(self, ctx: decafAlejandroParser.Statement_methodcallContext):
+    def exitStatement_methodcall(self, ctx: decafAlejandroV2Parser.Statement_methodcallContext):
         error = self.ChildrenHasError(ctx)
         if error:
             self.tipoNodo[ctx] = self.ERROR
@@ -724,7 +724,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
 
         self.tipoNodo[ctx] = self.tipoNodo[ctx.method_call()]
 
-    def exitStatement_break(self, ctx: decafAlejandroParser.Statement_breakContext):
+    def exitStatement_break(self, ctx: decafAlejandroV2Parser.Statement_breakContext):
         error = self.ChildrenHasError(ctx)
         if error:
             self.tipoNodo[ctx] = self.ERROR
@@ -732,7 +732,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
 
         self.tipoNodo[ctx] = self.VOID
 
-    def exitStatement_assign(self, ctx: decafAlejandroParser.Statement_assignContext):
+    def exitStatement_assign(self, ctx: decafAlejandroV2Parser.Statement_assignContext):
 
         result_type = self.VOID
 
@@ -756,7 +756,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
 
         self.tipoNodo[ctx] = result_type
 
-    def exitExpr(self, ctx: decafAlejandroParser.ExprContext):
+    def exitExpr(self, ctx: decafAlejandroV2Parser.ExprContext):
         nodes_nonterminals = []
         for child in ctx.children:
             if not isinstance(child, TerminalNode):
@@ -1137,7 +1137,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                 result_type = tipo_retorno
             return result_type
 
-    def enterLocation(self, ctx: decafAlejandroParser.LocationContext):
+    def enterLocation(self, ctx: decafAlejandroV2Parser.LocationContext):
         """ parent = ctx.parentCtx
         if parent in self.tipoNodo.keys():
             if self.tipoNodo[parent] == self.ERROR:
@@ -1215,17 +1215,17 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                         if self.tipoNodo[ctx.array_id()] == self.ERROR:
                             self.tipoNodo[ctx] = self.ERROR
 
-    def exitLocation(self, ctx: decafAlejandroParser.LocationContext):
+    def exitLocation(self, ctx: decafAlejandroV2Parser.LocationContext):
         if(ctx not in self.dictCodigoIntermedio.keys()):
             self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
                 0)]
         if ctx not in self.tipoNodo.keys():
             self.tipoNodo[ctx] = self.tipoNodo[ctx.getChild(0)]
 
-    def exitDeclaration(self, ctx: decafAlejandroParser.DeclarationContext):
+    def exitDeclaration(self, ctx: decafAlejandroV2Parser.DeclarationContext):
         self.tipoNodo[ctx] = self.tipoNodo[ctx.getChild(0)]
 
-    def exitProgram(self, ctx: decafAlejandroParser.ProgramContext):
+    def exitProgram(self, ctx: decafAlejandroV2Parser.ProgramContext):
         main_method = self.tabla_metodos.getSymbolFromTable('main')
         if main_method != 0:
             if len(main_method['Parameters']) > 0:
@@ -1257,9 +1257,9 @@ class CompilarIntermedio():
     def __init__(self, url):
         self.printer = None
         input = FileStream(url)
-        lexer = decafAlejandroLexer(input)
+        lexer = decafAlejandroV2Lexer(input)
         stream = CommonTokenStream(lexer)
-        parser = decafAlejandroParser(stream)
+        parser = decafAlejandroV2Parser(stream)
         self.errorFromAntlr = MyErrorListener()
         parser.removeErrorListeners()
         parser.addErrorListener(self.errorFromAntlr)
