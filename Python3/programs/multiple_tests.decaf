@@ -5,7 +5,12 @@ class Program{
 		int a;
 		int b;
 		int c;
-		c = ( c );
+		c = b + a;
+		c = -b;
+		a = (b);
+		b = a * b;
+		b = a / b;
+		c = a % b;
 	}
 
 }
