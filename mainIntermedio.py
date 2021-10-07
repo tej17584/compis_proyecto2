@@ -140,7 +140,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
         variable, contexto = self.findVarV2(varId)
         innerString = ""
         if(contexto == "GLOBAL"):
-            innerString = f'gp[{variable["Offset"]}]'
+            innerString = f'G[{variable["Offset"]}]'
         elif(contexto == "ANOTHER"):
             innerString = f'fp[{variable["Offset"]}]'
         return innerString
@@ -801,7 +801,6 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                     error = self.errores.errrorText_EQ_OPS """
 
             if ctx.arith_op() is not None or ctx.rel_op() is not None:
-                self.contadorGlobalNodos += 1
                 # si es una operacion aritmética
                 NodoE1 = self.dictCodigoIntermedio[ctx.getChild(0)]
                 NodoE2 = self.dictCodigoIntermedio[ctx.getChild(2)]
@@ -816,6 +815,66 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                     # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
                     codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
                                                                                  NodoE1.getAddress() + " + " + NodoE2.getAddress() + " ") + '\n'
+                    # agregamos el codigo al nodo de E
+                    sumaNode.addCode(codigoAunado)
+                    # agregamos el nodo a los nodos globales
+                    self.dictCodigoIntermedio[ctx] = sumaNode
+                elif(ctx.arith_op().getText() == "*"):
+                    # si es una suma y creamos un nodoo nuevo
+                    sumaNode = Nodo(self.contadorGlobalNodos)
+                    # creamos nueva temporal y la agregamos,
+                    #  por regla semántica E.dir = new Temp()
+                    innerTemporal = self.generateTemporal()
+                    sumaNode.addAddress(innerTemporal)
+                    # anidamos codigo por la regla semantica
+                    # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
+                    codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
+                                                                                 NodoE1.getAddress() + " * " + NodoE2.getAddress() + " ") + '\n'
+                    # agregamos el codigo al nodo de E
+                    sumaNode.addCode(codigoAunado)
+                    # agregamos el nodo a los nodos globales
+                    self.dictCodigoIntermedio[ctx] = sumaNode
+                elif(ctx.arith_op().getText() == "-"):
+                    # si es una suma y creamos un nodoo nuevo
+                    sumaNode = Nodo(self.contadorGlobalNodos)
+                    # creamos nueva temporal y la agregamos,
+                    #  por regla semántica E.dir = new Temp()
+                    innerTemporal = self.generateTemporal()
+                    sumaNode.addAddress(innerTemporal)
+                    # anidamos codigo por la regla semantica
+                    # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
+                    codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
+                                                                                 NodoE1.getAddress() + " - " + NodoE2.getAddress() + " ") + '\n'
+                    # agregamos el codigo al nodo de E
+                    sumaNode.addCode(codigoAunado)
+                    # agregamos el nodo a los nodos globales
+                    self.dictCodigoIntermedio[ctx] = sumaNode
+                elif(ctx.arith_op().getText() == "/"):
+                    # si es una suma y creamos un nodoo nuevo
+                    sumaNode = Nodo(self.contadorGlobalNodos)
+                    # creamos nueva temporal y la agregamos,
+                    #  por regla semántica E.dir = new Temp()
+                    innerTemporal = self.generateTemporal()
+                    sumaNode.addAddress(innerTemporal)
+                    # anidamos codigo por la regla semantica
+                    # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
+                    codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
+                                                                                 NodoE1.getAddress() + " / " + NodoE2.getAddress() + " ") + '\n'
+                    # agregamos el codigo al nodo de E
+                    sumaNode.addCode(codigoAunado)
+                    # agregamos el nodo a los nodos globales
+                    self.dictCodigoIntermedio[ctx] = sumaNode
+                elif(ctx.arith_op().getText() == "%"):
+                    # si es una suma y creamos un nodoo nuevo
+                    sumaNode = Nodo(self.contadorGlobalNodos)
+                    # creamos nueva temporal y la agregamos,
+                    #  por regla semántica E.dir = new Temp()
+                    innerTemporal = self.generateTemporal()
+                    sumaNode.addAddress(innerTemporal)
+                    # anidamos codigo por la regla semantica
+                    # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
+                    codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
+                                                                                 NodoE1.getAddress() + " % " + NodoE2.getAddress() + " ") + '\n'
                     # agregamos el codigo al nodo de E
                     sumaNode.addCode(codigoAunado)
                     # agregamos el nodo a los nodos globales
