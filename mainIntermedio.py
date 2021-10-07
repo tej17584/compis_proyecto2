@@ -756,14 +756,12 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
         self.tipoNodo[ctx] = result_type
 
-    def enterExpr_location(self, ctx: decafAlejandroV2Parser.Expr_locationContext):
-        print("sdrer")
     def exitExpr_location(self, ctx: decafAlejandroV2Parser.Expr_locationContext):
         self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
             0)]
 
-    """ def enterExpr_menos(self, ctx: decafAlejandroV2Parser.Expr_menosContext):
-        NodoE1 = ctx.getChild(0)
+    def exitExpr_menos(self, ctx: decafAlejandroV2Parser.Expr_menosContext):
+        NodoE1 = self.dictCodigoIntermedio[ctx.getChild(1)]
         # si es una suma y creamos un nodoo nuevo
         menosNode = Nodo(self.contadorGlobalNodos)
         self.contadorGlobalNodos += 1
@@ -778,7 +776,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         # agregamos el codigo al nodo de E
         menosNode.addCode(codigoAunado)
         # agregamos el nodo a los nodos globales
-        self.dictCodigoIntermedio[ctx] = menosNode """
+        self.dictCodigoIntermedio[ctx] = menosNode
 
     def exitExpr_PrecedenciaMax(self, ctx: decafAlejandroV2Parser.Expr_PrecedenciaMaxContext):
         # si es una operacion aritmética
