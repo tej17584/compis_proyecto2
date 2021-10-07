@@ -733,12 +733,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
         self.tipoNodo[ctx] = self.VOID
 
     def exitStatement_assign(self, ctx: decafAlejandroParser.Statement_assignContext):
-        """ error = self.ChildrenHasError(ctx)
-        if error:
-            self.tipoNodo[ctx] = self.ERROR
-            return """
-        left = self.tipoNodo[ctx.location()]
-        right = self.tipoNodo[ctx.expr()]
+
         result_type = self.VOID
 
         nodoI = self.dictCodigoIntermedio[ctx.location()]
@@ -759,12 +754,6 @@ class DecafAlejandroPrinter(decafAlejandroListener):
         self.dictCodigoIntermedio[ctx] = nodoS
         self.arrayProduccionesTerminadas.append(nodoS)
 
-        """ if left != right:
-            result_type = self.ERROR
-            line = ctx.assign_op().start.line
-            col = ctx.assign_op().start.column
-            self.errores.AddEntryToTable(
-                line, col, self.errores.errrorText_EQUALS) """
         self.tipoNodo[ctx] = result_type
 
     def exitExpr(self, ctx: decafAlejandroParser.ExprContext):
@@ -777,20 +766,33 @@ class DecafAlejandroPrinter(decafAlejandroListener):
             non_terminal = nodes_nonterminals.pop()
             self.tipoNodo[ctx] = self.tipoNodo[non_terminal]
             self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[non_terminal]
+            if(ctx.SUB() is not None):  # tenemos un sub antes del valor
+                print("DFDFS")
+                NodoE1 = self.dictCodigoIntermedio[ctx.getChild(1)]
+                # si es una suma y creamos un nodoo nuevo
+                menosNode = Nodo(self.contadorGlobalNodos)
+                self.contadorGlobalNodos += 1
+                # creamos nueva temporal y la agregamos,
+                #  por regla semántica E.dir = new Temp()
+                innerTemporal = self.generateTemporal()
+                menosNode.addAddress(innerTemporal)
+                # anidamos codigo por la regla semantica
+                # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
+                codigoAunado = '\n' + NodoE1.getCode() + (menosNode.getAddress() + " =  MENOS " +
+                                                          NodoE1.getAddress()) + '\n'
+                # agregamos el codigo al nodo de E
+                menosNode.addCode(codigoAunado)
+                # agregamos el nodo a los nodos globales
+                self.dictCodigoIntermedio[ctx] = menosNode
 
         else:
             tipo1 = self.tipoNodo[ctx.getChild(0)]
             tipo2 = self.tipoNodo[ctx.getChild(2)]
-
             """ if self.ERROR in [tipo1, tipo2]:
                 self.tipoNodo[ctx] = self.ERROR
                 return """
 
             result_type = self.ERROR
-
-            error = ''
-            hasError = False
-
             if ctx.eq_op() is not None:
                 if len(self.Intersection([tipo1, tipo2], [self.STRING, self.INT, self.BOOLEAN])) > 0 and tipo1 == tipo2:
                     result_type = self.BOOLEAN
@@ -807,6 +809,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                 if(ctx.arith_op().getText() == "+"):
                     # si es una suma y creamos un nodoo nuevo
                     sumaNode = Nodo(self.contadorGlobalNodos)
+                    self.contadorGlobalNodos += 1
                     # creamos nueva temporal y la agregamos,
                     #  por regla semántica E.dir = new Temp()
                     innerTemporal = self.generateTemporal()
@@ -822,6 +825,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                 elif(ctx.arith_op().getText() == "*"):
                     # si es una suma y creamos un nodoo nuevo
                     sumaNode = Nodo(self.contadorGlobalNodos)
+                    self.contadorGlobalNodos += 1
                     # creamos nueva temporal y la agregamos,
                     #  por regla semántica E.dir = new Temp()
                     innerTemporal = self.generateTemporal()
@@ -837,6 +841,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                 elif(ctx.arith_op().getText() == "-"):
                     # si es una suma y creamos un nodoo nuevo
                     sumaNode = Nodo(self.contadorGlobalNodos)
+                    self.contadorGlobalNodos += 1
                     # creamos nueva temporal y la agregamos,
                     #  por regla semántica E.dir = new Temp()
                     innerTemporal = self.generateTemporal()
@@ -852,6 +857,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                 elif(ctx.arith_op().getText() == "/"):
                     # si es una suma y creamos un nodoo nuevo
                     sumaNode = Nodo(self.contadorGlobalNodos)
+                    self.contadorGlobalNodos += 1
                     # creamos nueva temporal y la agregamos,
                     #  por regla semántica E.dir = new Temp()
                     innerTemporal = self.generateTemporal()
@@ -867,6 +873,7 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                 elif(ctx.arith_op().getText() == "%"):
                     # si es una suma y creamos un nodoo nuevo
                     sumaNode = Nodo(self.contadorGlobalNodos)
+                    self.contadorGlobalNodos += 1
                     # creamos nueva temporal y la agregamos,
                     #  por regla semántica E.dir = new Temp()
                     innerTemporal = self.generateTemporal()
@@ -884,37 +891,14 @@ class DecafAlejandroPrinter(decafAlejandroListener):
                     result_type = self.INT
                     if ctx.rel_op() is not None:
                         result_type = self.BOOLEAN
-                """ else:
-                    hasError = True
-                    if tipo1 != self.INT:
-                        line = ctx.getChild(0).start.line
-                        col = ctx.getChild(0).start.column
-                    else:
-                        line = ctx.getChild(2).start.line
-                        col = ctx.getChild(2).start.column
-
-                    if ctx.arith_op() is not None:
-                        error = self.errores.errrorText_ARITMETICA
-                    else:
-                        error = self.errores.errrorText_REL_OP """
+            elif ctx.SUB() is not None:  # si tiene un negativo ANTES de la expresion
+                print("SSSS")
             elif ctx.cond_op() is not None:
                 if tipo1 == self.BOOLEAN and tipo2 == self.BOOLEAN:
                     result_type = self.BOOLEAN
-                else:
-                    hasError = True
-                    if tipo1 != self.BOOLEAN:
-                        line = ctx.getChild(0).start.line
-                        col = ctx.getChild(0).start.column
-                    else:
-                        line = ctx.getChild(2).start.line
-                        col = ctx.getChild(2).start.column
-
-                    error = self.errores.errrorText_CONDICIONALES_GENERAL
             else:
                 result_type = self.VOID
 
-            """  if hasError:
-                self.errores.AddEntryToTable(line, col, error) """
             self.tipoNodo[ctx] = result_type
 
     def CheckErrorInArrayId(self, ctx, tipo, tipo_var):

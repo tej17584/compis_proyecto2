@@ -6,8 +6,7 @@ class Program{
 		int a;
 		int b;
 		int c;
-		c =  b / c;
-		d =  a % b;
+		b =  - a;
 	}
 
 }
