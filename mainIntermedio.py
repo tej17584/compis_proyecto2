@@ -760,6 +760,18 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
             0)]
 
+    def exitExpr_parentesis(self, ctx: decafAlejandroV2Parser.Expr_parentesisContext):
+        NodoE1 = self.dictCodigoIntermedio[ctx.getChild(1)]
+        # si es una suma y creamos un nodoo nuevo
+        nodoParentesis = Nodo(self.contadorGlobalNodos)
+        self.contadorGlobalNodos += 1
+        # por regla E.dir = E1.dir
+        nodoParentesis.addAddress(NodoE1.getAddress())
+        # agregamos el codigo al nodo de E.codigo = E1.codigo
+        nodoParentesis.addCode(NodoE1.getCode())
+        # agregamos el nodo a los nodos globales
+        self.dictCodigoIntermedio[ctx] = nodoParentesis
+
     def exitExpr_menos(self, ctx: decafAlejandroV2Parser.Expr_menosContext):
         NodoE1 = self.dictCodigoIntermedio[ctx.getChild(1)]
         # si es una suma y creamos un nodoo nuevo
