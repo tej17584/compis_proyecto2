@@ -756,7 +756,123 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
         self.tipoNodo[ctx] = result_type
 
-    def exitExpr(self, ctx: decafAlejandroV2Parser.ExprContext):
+    def enterExpr_location(self, ctx: decafAlejandroV2Parser.Expr_locationContext):
+        print("sdrer")
+    def exitExpr_location(self, ctx: decafAlejandroV2Parser.Expr_locationContext):
+        self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+            0)]
+
+    """ def enterExpr_menos(self, ctx: decafAlejandroV2Parser.Expr_menosContext):
+        NodoE1 = ctx.getChild(0)
+        # si es una suma y creamos un nodoo nuevo
+        menosNode = Nodo(self.contadorGlobalNodos)
+        self.contadorGlobalNodos += 1
+        # creamos nueva temporal y la agregamos,
+        #  por regla semántica E.dir = new Temp()
+        innerTemporal = self.generateTemporal()
+        menosNode.addAddress(innerTemporal)
+        # anidamos codigo por la regla semantica
+        # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
+        codigoAunado = '\n' + NodoE1.getCode() + (menosNode.getAddress() + " =  MENOS " +
+                                                  NodoE1.getAddress()) + '\n'
+        # agregamos el codigo al nodo de E
+        menosNode.addCode(codigoAunado)
+        # agregamos el nodo a los nodos globales
+        self.dictCodigoIntermedio[ctx] = menosNode """
+
+    def exitExpr_PrecedenciaMax(self, ctx: decafAlejandroV2Parser.Expr_PrecedenciaMaxContext):
+        # si es una operacion aritmética
+        NodoE1 = self.dictCodigoIntermedio[ctx.getChild(0)]
+        NodoE2 = self.dictCodigoIntermedio[ctx.getChild(2)]
+        if ctx.MULTIPLY() is not None:
+            # si es una suma y creamos un nodoo nuevo
+            sumaNode = Nodo(self.contadorGlobalNodos)
+            self.contadorGlobalNodos += 1
+            # creamos nueva temporal y la agregamos,
+            #  por regla semántica E.dir = new Temp()
+            innerTemporal = self.generateTemporal()
+            sumaNode.addAddress(innerTemporal)
+            # anidamos codigo por la regla semantica
+            # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
+            codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
+                                                                         NodoE1.getAddress() + " * " + NodoE2.getAddress() + " ") + '\n'
+            # agregamos el codigo al nodo de E
+            sumaNode.addCode(codigoAunado)
+            # agregamos el nodo a los nodos globales
+            # agregamos el nodo a los nodos globales
+            self.dictCodigoIntermedio[ctx] = sumaNode
+        elif ctx.DIVIDE() is not None:
+            # si es una suma y creamos un nodoo nuevo
+            sumaNode = Nodo(self.contadorGlobalNodos)
+            self.contadorGlobalNodos += 1
+            # creamos nueva temporal y la agregamos,
+            #  por regla semántica E.dir = new Temp()
+            innerTemporal = self.generateTemporal()
+            sumaNode.addAddress(innerTemporal)
+            # anidamos codigo por la regla semantica
+            # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
+            codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
+                                                                         NodoE1.getAddress() + " / " + NodoE2.getAddress() + " ") + '\n'
+            # agregamos el codigo al nodo de E
+            sumaNode.addCode(codigoAunado)
+            # agregamos el nodo a los nodos globales
+            self.dictCodigoIntermedio[ctx] = sumaNode
+        elif ctx.REMINDER() is not None:
+            # si es una suma y creamos un nodoo nuevo
+            sumaNode = Nodo(self.contadorGlobalNodos)
+            self.contadorGlobalNodos += 1
+            # creamos nueva temporal y la agregamos,
+            #  por regla semántica E.dir = new Temp()
+            innerTemporal = self.generateTemporal()
+            sumaNode.addAddress(innerTemporal)
+            # anidamos codigo por la regla semantica
+            # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
+            codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
+                                                                         NodoE1.getAddress() + " % " + NodoE2.getAddress() + " ") + '\n'
+            # agregamos el codigo al nodo de E
+            sumaNode.addCode(codigoAunado)
+            # agregamos el nodo a los nodos globales
+            self.dictCodigoIntermedio[ctx] = sumaNode
+
+    def exitExpr_PrecedenciaMenor(self, ctx: decafAlejandroV2Parser.Expr_PrecedenciaMenorContext):
+        # si es una operacion aritmética
+        NodoE1 = self.dictCodigoIntermedio[ctx.getChild(0)]
+        NodoE2 = self.dictCodigoIntermedio[ctx.getChild(2)]
+        if ctx.ADD() is not None:
+            # si es una suma y creamos un nodoo nuevo
+            sumaNode = Nodo(self.contadorGlobalNodos)
+            self.contadorGlobalNodos += 1
+            # creamos nueva temporal y la agregamos,
+            #  por regla semántica E.dir = new Temp()
+            innerTemporal = self.generateTemporal()
+            sumaNode.addAddress(innerTemporal)
+            # anidamos codigo por la regla semantica
+            # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
+            codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
+                                                                         NodoE1.getAddress() + " + " + NodoE2.getAddress() + " ") + '\n'
+            # agregamos el codigo al nodo de E
+            sumaNode.addCode(codigoAunado)
+            # agregamos el nodo a los nodos globales
+            # agregamos el nodo a los nodos globales
+            self.dictCodigoIntermedio[ctx] = sumaNode
+        elif ctx.SUB() is not None:
+            # si es una suma y creamos un nodoo nuevo
+            sumaNode = Nodo(self.contadorGlobalNodos)
+            self.contadorGlobalNodos += 1
+            # creamos nueva temporal y la agregamos,
+            #  por regla semántica E.dir = new Temp()
+            innerTemporal = self.generateTemporal()
+            sumaNode.addAddress(innerTemporal)
+            # anidamos codigo por la regla semantica
+            # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
+            codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
+                                                                         NodoE1.getAddress() + " - " + NodoE2.getAddress() + " ") + '\n'
+            # agregamos el codigo al nodo de E
+            sumaNode.addCode(codigoAunado)
+            # agregamos el nodo a los nodos globales
+            self.dictCodigoIntermedio[ctx] = sumaNode
+
+    """ def exitExpr(self, ctx: decafAlejandroV2Parser.ExprContext):
         nodes_nonterminals = []
         for child in ctx.children:
             if not isinstance(child, TerminalNode):
@@ -788,19 +904,19 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         else:
             tipo1 = self.tipoNodo[ctx.getChild(0)]
             tipo2 = self.tipoNodo[ctx.getChild(2)]
-            """ if self.ERROR in [tipo1, tipo2]:
+            if self.ERROR in [tipo1, tipo2]:
                 self.tipoNodo[ctx] = self.ERROR
-                return """
+                return
 
             result_type = self.ERROR
             if ctx.eq_op() is not None:
                 if len(self.Intersection([tipo1, tipo2], [self.STRING, self.INT, self.BOOLEAN])) > 0 and tipo1 == tipo2:
                     result_type = self.BOOLEAN
-                """  else:
+                else:
                     hasError = True
                     line = ctx.getChild(0).start.line
                     col = ctx.getChild(0).start.column
-                    error = self.errores.errrorText_EQ_OPS """
+                    error = self.errores.errrorText_EQ_OPS
 
             if ctx.arith_op() is not None or ctx.rel_op() is not None:
                 # si es una operacion aritmética
@@ -899,7 +1015,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             else:
                 result_type = self.VOID
 
-            self.tipoNodo[ctx] = result_type
+            self.tipoNodo[ctx] = result_type """
 
     def CheckErrorInArrayId(self, ctx, tipo, tipo_var):
         id = ctx.getChild(0).getText()

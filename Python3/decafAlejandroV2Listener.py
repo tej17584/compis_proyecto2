@@ -179,12 +179,84 @@ class decafAlejandroV2Listener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by decafAlejandroV2Parser#expr.
-    def enterExpr(self, ctx:decafAlejandroV2Parser.ExprContext):
+    # Enter a parse tree produced by decafAlejandroV2Parser#expr_literal.
+    def enterExpr_literal(self, ctx:decafAlejandroV2Parser.Expr_literalContext):
         pass
 
-    # Exit a parse tree produced by decafAlejandroV2Parser#expr.
-    def exitExpr(self, ctx:decafAlejandroV2Parser.ExprContext):
+    # Exit a parse tree produced by decafAlejandroV2Parser#expr_literal.
+    def exitExpr_literal(self, ctx:decafAlejandroV2Parser.Expr_literalContext):
+        pass
+
+
+    # Enter a parse tree produced by decafAlejandroV2Parser#expr_location.
+    def enterExpr_location(self, ctx:decafAlejandroV2Parser.Expr_locationContext):
+        pass
+
+    # Exit a parse tree produced by decafAlejandroV2Parser#expr_location.
+    def exitExpr_location(self, ctx:decafAlejandroV2Parser.Expr_locationContext):
+        pass
+
+
+    # Enter a parse tree produced by decafAlejandroV2Parser#expr_PrecedenciaMax.
+    def enterExpr_PrecedenciaMax(self, ctx:decafAlejandroV2Parser.Expr_PrecedenciaMaxContext):
+        pass
+
+    # Exit a parse tree produced by decafAlejandroV2Parser#expr_PrecedenciaMax.
+    def exitExpr_PrecedenciaMax(self, ctx:decafAlejandroV2Parser.Expr_PrecedenciaMaxContext):
+        pass
+
+
+    # Enter a parse tree produced by decafAlejandroV2Parser#expr_menos.
+    def enterExpr_menos(self, ctx:decafAlejandroV2Parser.Expr_menosContext):
+        pass
+
+    # Exit a parse tree produced by decafAlejandroV2Parser#expr_menos.
+    def exitExpr_menos(self, ctx:decafAlejandroV2Parser.Expr_menosContext):
+        pass
+
+
+    # Enter a parse tree produced by decafAlejandroV2Parser#expr_normal.
+    def enterExpr_normal(self, ctx:decafAlejandroV2Parser.Expr_normalContext):
+        pass
+
+    # Exit a parse tree produced by decafAlejandroV2Parser#expr_normal.
+    def exitExpr_normal(self, ctx:decafAlejandroV2Parser.Expr_normalContext):
+        pass
+
+
+    # Enter a parse tree produced by decafAlejandroV2Parser#expr_PrecedenciaMenor.
+    def enterExpr_PrecedenciaMenor(self, ctx:decafAlejandroV2Parser.Expr_PrecedenciaMenorContext):
+        pass
+
+    # Exit a parse tree produced by decafAlejandroV2Parser#expr_PrecedenciaMenor.
+    def exitExpr_PrecedenciaMenor(self, ctx:decafAlejandroV2Parser.Expr_PrecedenciaMenorContext):
+        pass
+
+
+    # Enter a parse tree produced by decafAlejandroV2Parser#expr_parentesis.
+    def enterExpr_parentesis(self, ctx:decafAlejandroV2Parser.Expr_parentesisContext):
+        pass
+
+    # Exit a parse tree produced by decafAlejandroV2Parser#expr_parentesis.
+    def exitExpr_parentesis(self, ctx:decafAlejandroV2Parser.Expr_parentesisContext):
+        pass
+
+
+    # Enter a parse tree produced by decafAlejandroV2Parser#expr_methodCall.
+    def enterExpr_methodCall(self, ctx:decafAlejandroV2Parser.Expr_methodCallContext):
+        pass
+
+    # Exit a parse tree produced by decafAlejandroV2Parser#expr_methodCall.
+    def exitExpr_methodCall(self, ctx:decafAlejandroV2Parser.Expr_methodCallContext):
+        pass
+
+
+    # Enter a parse tree produced by decafAlejandroV2Parser#expr_negacion.
+    def enterExpr_negacion(self, ctx:decafAlejandroV2Parser.Expr_negacionContext):
+        pass
+
+    # Exit a parse tree produced by decafAlejandroV2Parser#expr_negacion.
+    def exitExpr_negacion(self, ctx:decafAlejandroV2Parser.Expr_negacionContext):
         pass
 
 

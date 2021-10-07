@@ -1,12 +1,11 @@
 class Program{
-	int d;
 
 	void main(void)
 	{
 		int a;
 		int b;
 		int c;
-		b =  - a;
+		c = b - a;
 	}
 
 }

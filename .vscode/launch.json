@@ -4,12 +4,13 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Debug ANTLR4 grammar",
             "type": "antlr-debug",
             "request": "launch",
             "input": "Python3/programs/multiple_tests.decaf",
-            "grammar": "Python3/decafAlejandro.g4",
+            "grammar": "Python3/decafAlejandroV2.g4",
             "startRule": "program",
             "printParseTree": true,
             "visualParseTree": true
