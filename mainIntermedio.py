@@ -205,11 +205,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
                 if isinstance(ctx.getChild(i), decafAlejandroV2Parser.Var_typeContext):
                     typeParameter = self.data_type[ctx.getChild(i).getText()]
                     idParameter = ctx.getChild(i + 1).getText()
-                    """ if idParameter in [i['Id'] for i in parameters]:
-                        line = ctx.getChild(i + 1).start.line
-                        col = ctx.getChild(i + 1).start.column
-                        self.errores.AddEntryToTable(
-                            line, col, self.errores.errrorText_VARDUPLICADA) """
 
                     parameters.append(
                         {'Tipo': typeParameter, 'Id': idParameter})
@@ -217,12 +212,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
                         typeParameter, idParameter)
 
             self.tabla_metodos.AddEntryToTable(tipo, metodo, parameters, None)
-        """ else:
-            # self.tipoNodo
-            line = ctx.method_name().start.line
-            col = ctx.method_name().start.column
-            self.errores.AddEntryToTable(
-                line, col, self.errores.errrorText_VARDUPLICADA) """
 
         self.addScope()
 
@@ -243,28 +232,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         # <--------->
         self.tabla_parametros.cleanTable()
         self.popScope()
-
-        """ return_type = ctx.return_type().getText()
-        block_type = self.tipoNodo[ctx.block()]
-
-        if return_type == self.VOID and block_type != self.VOID and block_type != self.ERROR:
-            self.tipoNodo[ctx] = self.ERROR
-            line = ctx.return_type().start.line
-            col = ctx.return_type().start.column
-            self.errores.AddEntryToTable(
-                line, col, self.errores.errrorText_TIPOVOID)
-            return
-
-        if return_type != block_type:
-            if block_type == self.ERROR:
-                self.tipoNodo[ctx] = self.ERROR
-                return
-
-            self.tipoNodo[ctx] = self.ERROR
-            line = ctx.block().start.line
-            col = ctx.block().start.column
-            self.errores.AddEntryToTable(
-                line, col, self.errores.errrorText_TIPO_RETORNO) """
 
         self.tipoNodo[ctx] = self.VOID
         self.dictCodigoIntermedio[ctx] = ctx
@@ -565,6 +532,21 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         else:
             self.tipoNodo[ctx] = self.ERROR
 
+    def visitNodes(self, params):
+        innerArray = []
+        for param in params:
+            innerNode = Nodo(self.contadorGlobalNodos)
+            self.contadorGlobalNodos += 1
+            innerNode.addCode('')
+            if self.findVar(param.getText()) == 0:
+                innerNode.addAddress(param.getText())
+            else:
+                variable = self.findVar(param.getText())
+                innerNode.addAddress(self.generateTopeGet(variable["Id"]))
+            innerArray.append(innerNode)
+
+        return innerArray
+
     def exitMethod_call(self, ctx: decafAlejandroV2Parser.Method_callContext):
         name = ctx.method_name().getText()
         parameters = []
@@ -574,47 +556,26 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
                 parameters.append(child)
 
         method_info = self.tabla_metodos.getSymbolFromTable(name)
-        if method_info == 0:
-            self.tipoNodo[ctx] = self.ERROR
-            line = ctx.method_name().start.line
-            col = ctx.method_name().start.column
-            self.errores.AddEntryToTable(
-                line, col, f'El método "{name}" no existe o no ha sido declarado antes del scope actual.')
-            return
-
-        if len(parameters) != len(method_info['Parameters']):
-            self.tipoNodo[ctx] = self.ERROR
-            line = ctx.method_name().start.line
-            col = ctx.method_name().start.column
-            self.errores.AddEntryToTable(
-                line, col, self.errores.errrorText_CANTIDAD_PARAMETROS)
-            return
-
         if len(parameters) == 0:
             self.tipoNodo[ctx] = method_info['Tipo']
             return
 
-        hasError = False
-        for i in range(len(parameters)):
-            tipo_parametro = self.tipoNodo[parameters[i]]
-            if tipo_parametro == self.ERROR:
-                self.tipoNodo[ctx] = self.ERROR
-                return
+        self.tipoNodo[ctx] = method_info['Tipo']
+        nombre = name
+        # si es una suma y creamos un nodoo nuevo
+        nodoLlamada = Nodo(self.contadorGlobalNodos)
+        self.contadorGlobalNodos += 1
+        args = self.visitNodes(ctx.expr())
+        for arg in args:
+            codigo = nodoLlamada.getCode()
+            codigo += arg.getCode() + (' PARAM ' + arg.getAddress() + '\n')
+            nodoLlamada.addCode(codigo)
 
-            tipo_metodo = method_info['Parameters'][i]['Tipo']
-
-            if tipo_parametro != tipo_metodo:
-                hasError = True
-
-                line = parameters[i].start.line
-                col = parameters[i].start.column
-                self.errores.AddEntryToTable(
-                    line, col, self.errores.errrorText_TIPOMETODOS)
-
-            if hasError:
-                self.tipoNodo[ctx] = self.ERROR
-            else:
-                self.tipoNodo[ctx] = method_info['Tipo']
+        codigo = nodoLlamada.getCode()
+        codigo += ' CALL ' + nombre + ', ' + str(len(args)) + '\n'
+        nodoLlamada.addCode(codigo)
+        nodoLlamada.addAddress("R")
+        self.dictCodigoIntermedio[ctx] = nodoLlamada
 
     def GetMethodType(self, ctx):
         nodo = ctx.parentCtx
@@ -765,6 +726,11 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.tipoNodo[ctx] = result_type
 
     def exitExpr_location(self, ctx: decafAlejandroV2Parser.Expr_locationContext):
+        self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+            0)]
+        self.tipoNodo[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+            0)]
+    def exitExpr_methodCall(self, ctx: decafAlejandroV2Parser.Expr_methodCallContext):
         self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
             0)]
         self.tipoNodo[ctx] = self.dictCodigoIntermedio[ctx.getChild(
