@@ -1,11 +1,15 @@
 class Program{
+	int suma(int z, int h) {
+		int x;
+		int y;
+		x = z + y;
 
-	void main(void)
-	{
-		int a;
-		int b;
-		int c;
-		c = b + a;
+		return x;
 	}
 
+	void main(void) {
+		int a;
+		int b;
+		a = b + a;
+	}
 }

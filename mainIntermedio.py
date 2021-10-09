@@ -239,7 +239,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         # ALEJANDRO CHANGES ---
         self.popMethodActual()
         name = ctx.method_name().getText()
-        self.arrayProduccionesTerminadas.append(f'END DEF {name.upper()}')
+        self.arrayProduccionesTerminadas.append(f'END DEF {name.upper()} \n\n')
         # <--------->
         self.tabla_parametros.cleanTable()
         self.popScope()
@@ -543,11 +543,11 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         if not isinstance(parent, decafAlejandroV2Parser.Method_declrContext):
             self.popScope()
 
-        for child in ctx.children:
+        """ for child in ctx.children:
             if not isinstance(child, TerminalNode):
                 if self.tipoNodo[child] == self.ERROR:
                     self.tipoNodo[ctx] = self.ERROR
-                    return
+                    return """
 
         hijos_tipo = [self.tipoNodo[i] for i in ctx.children if isinstance(
             i, decafAlejandroV2Parser.StatementContext)]
@@ -713,12 +713,16 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             self.tipoNodo[ctx] = hijos_tipo.pop()
 
     def exitStatement_return(self, ctx: decafAlejandroV2Parser.Statement_returnContext):
-        error = self.ChildrenHasError(ctx)
-        if error:
-            self.tipoNodo[ctx] = self.ERROR
-            return
+        # si es una suma y creamos un nodoo nuevo
+        nodoReturn = Nodo(self.contadorGlobalNodos)
+        self.contadorGlobalNodos += 1
+        nodoExpr = self.dictCodigoIntermedio[ctx.expr()]
+        codigoAunado = nodoExpr.getCode() + ('RETURN ' + nodoExpr.getAddress()) + '\n'
+        nodoReturn.addCode(codigoAunado)
+        self.arrayProduccionesTerminadas.append(codigoAunado)
 
         self.tipoNodo[ctx] = self.tipoNodo[ctx.expr()]
+        self.dictCodigoIntermedio[ctx] = nodoReturn
 
     def exitStatement_methodcall(self, ctx: decafAlejandroV2Parser.Statement_methodcallContext):
         error = self.ChildrenHasError(ctx)
@@ -762,6 +766,8 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
     def exitExpr_location(self, ctx: decafAlejandroV2Parser.Expr_locationContext):
         self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+            0)]
+        self.tipoNodo[ctx] = self.dictCodigoIntermedio[ctx.getChild(
             0)]
 
     def exitExpr_parentesis(self, ctx: decafAlejandroV2Parser.Expr_parentesisContext):
