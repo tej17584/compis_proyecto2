@@ -404,15 +404,30 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
     def exitString_literal(self, ctx: decafAlejandroV2Parser.String_literalContext):
         self.tipoNodo[ctx] = self.STRING
+        # creamos un nuevo nodo
+        nodoS = Nodo(self.contadorGlobalNodos)
+        self.contadorGlobalNodos += 1
+        self.dictCodigoIntermedio[ctx] = nodoS
 
     def exitInt_literal(self, ctx: decafAlejandroV2Parser.Int_literalContext):
         self.tipoNodo[ctx] = self.INT
+        # creamos un nuevo nodo
+        nodoS = Nodo(self.contadorGlobalNodos)
+        self.contadorGlobalNodos += 1
+        self.dictCodigoIntermedio[ctx] = nodoS
 
     def exitBool_literal(self, ctx: decafAlejandroV2Parser.Bool_literalContext):
         self.tipoNodo[ctx] = self.BOOLEAN
+        # creamos un nuevo nodo
+        nodoS = Nodo(self.contadorGlobalNodos)
+        self.contadorGlobalNodos += 1
+        self.dictCodigoIntermedio[ctx] = nodoS
 
     def exitLiteral(self, ctx: decafAlejandroV2Parser.LiteralContext):
-        self.tipoNodo[ctx] = self.tipoNodo[ctx.getChild(0)]
+        self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+            0)]
+        self.tipoNodo[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+            0)]
 
     def enterArray_id(self, ctx: decafAlejandroV2Parser.Array_idContext):
         parent = ctx.parentCtx
@@ -531,6 +546,9 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             self.tipoNodo[ctx] = filtered.pop()
         else:
             self.tipoNodo[ctx] = self.ERROR
+
+        self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+            1)]
 
     def visitNodes(self, params):
         innerArray = []
@@ -730,6 +748,13 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             0)]
         self.tipoNodo[ctx] = self.dictCodigoIntermedio[ctx.getChild(
             0)]
+
+    def exitExpr_literal(self, ctx: decafAlejandroV2Parser.Expr_literalContext):
+        self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+            0)]
+        self.tipoNodo[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+            0)]
+
     def exitExpr_methodCall(self, ctx: decafAlejandroV2Parser.Expr_methodCallContext):
         self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
             0)]
@@ -765,6 +790,30 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         menosNode.addCode(codigoAunado)
         # agregamos el nodo a los nodos globales
         self.dictCodigoIntermedio[ctx] = menosNode
+
+    def exitExpr_negacion(self, ctx: decafAlejandroV2Parser.Expr_negacionContext):
+        NodoE1 = self.dictCodigoIntermedio[ctx.getChild(1)]
+        # si es una suma y creamos un nodoo nuevo
+        menosNode = Nodo(self.contadorGlobalNodos)
+        self.contadorGlobalNodos += 1
+        # creamos nueva temporal y la agregamos,
+        #  por regla semántica E.dir = new Temp()
+        innerTemporal = self.generateTemporal()
+        menosNode.addAddress(innerTemporal)
+        # anidamos codigo por la regla semantica
+        # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
+        codigoAunado = '\n' + NodoE1.getCode() + (menosNode.getAddress() + " =  NEGADO " +
+                                                  NodoE1.getAddress()) + '\n'
+        # agregamos el codigo al nodo de E
+        menosNode.addCode(codigoAunado)
+        # agregamos el nodo a los nodos globales
+        self.dictCodigoIntermedio[ctx] = menosNode
+
+    def exitExpr_normal(self, ctx: decafAlejandroV2Parser.Expr_normalContext):
+        self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+            0)]
+        self.tipoNodo[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+            0)]
 
     def exitExpr_PrecedenciaMax(self, ctx: decafAlejandroV2Parser.Expr_PrecedenciaMaxContext):
         # si es una operacion aritmética
