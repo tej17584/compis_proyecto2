@@ -193,6 +193,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         if self.tabla_metodos.getSymbolFromTable(metodo) == 0:
             # ALEJANDRO CHANGES ---
             self.addMethodActual(metodo)
+            self.arrayProduccionesTerminadas.append(f'DEF {metodo.upper()}:')
             # <--------->
             if ctx.return_type().var_type() is not None:
                 tipo = ctx.return_type().var_type().getText()
@@ -204,11 +205,11 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
                 if isinstance(ctx.getChild(i), decafAlejandroV2Parser.Var_typeContext):
                     typeParameter = self.data_type[ctx.getChild(i).getText()]
                     idParameter = ctx.getChild(i + 1).getText()
-                    if idParameter in [i['Id'] for i in parameters]:
+                    """ if idParameter in [i['Id'] for i in parameters]:
                         line = ctx.getChild(i + 1).start.line
                         col = ctx.getChild(i + 1).start.column
                         self.errores.AddEntryToTable(
-                            line, col, self.errores.errrorText_VARDUPLICADA)
+                            line, col, self.errores.errrorText_VARDUPLICADA) """
 
                     parameters.append(
                         {'Tipo': typeParameter, 'Id': idParameter})
@@ -216,12 +217,12 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
                         typeParameter, idParameter)
 
             self.tabla_metodos.AddEntryToTable(tipo, metodo, parameters, None)
-        else:
+        """ else:
             # self.tipoNodo
             line = ctx.method_name().start.line
             col = ctx.method_name().start.column
             self.errores.AddEntryToTable(
-                line, col, self.errores.errrorText_VARDUPLICADA)
+                line, col, self.errores.errrorText_VARDUPLICADA) """
 
         self.addScope()
 
@@ -237,11 +238,13 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         metodo = ctx.method_name().getText()
         # ALEJANDRO CHANGES ---
         self.popMethodActual()
+        name = ctx.method_name().getText()
+        self.arrayProduccionesTerminadas.append(f'END DEF {name.upper()}')
         # <--------->
         self.tabla_parametros.cleanTable()
         self.popScope()
 
-        return_type = ctx.return_type().getText()
+        """ return_type = ctx.return_type().getText()
         block_type = self.tipoNodo[ctx.block()]
 
         if return_type == self.VOID and block_type != self.VOID and block_type != self.ERROR:
@@ -261,9 +264,10 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             line = ctx.block().start.line
             col = ctx.block().start.column
             self.errores.AddEntryToTable(
-                line, col, self.errores.errrorText_TIPO_RETORNO)
+                line, col, self.errores.errrorText_TIPO_RETORNO) """
 
         self.tipoNodo[ctx] = self.VOID
+        self.dictCodigoIntermedio[ctx] = ctx
 
     def enterVardeclr(self, ctx: decafAlejandroV2Parser.VardeclrContext):
         tipo = ctx.var_type().getText()
@@ -752,7 +756,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         nodoS.addCode(codigoAunado)
         # agregamos el dict de nodos globales
         self.dictCodigoIntermedio[ctx] = nodoS
-        self.arrayProduccionesTerminadas.append(nodoS)
+        self.arrayProduccionesTerminadas.append(nodoS.getCode())
 
         self.tipoNodo[ctx] = result_type
 
@@ -1371,7 +1375,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
         # mostramos el codigo terminado
         for x in self.arrayProduccionesTerminadas:
-            print(x.getCode())
+            print(x)
 
         print('----------> FIN PROGRAMA <--------------')
         """ self.scope_Actual.valueToTable()
