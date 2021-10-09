@@ -396,11 +396,13 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
     def exitVardeclr(self, ctx: decafAlejandroV2Parser.VardeclrContext):
         self.tipoNodo[ctx] = self.VOID
-        for child in ctx.children:
+        self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+            1)]
+        """ for child in ctx.children:
             if not isinstance(child, TerminalNode):
                 if self.tipoNodo[child] == self.ERROR:
                     self.tipoNodo[ctx] = self.ERROR
-                    break
+                    break """
 
     def exitString_literal(self, ctx: decafAlejandroV2Parser.String_literalContext):
         self.tipoNodo[ctx] = self.STRING
@@ -530,7 +532,8 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
                 if self.tipoNodo[child] == self.ERROR:
                     self.tipoNodo[ctx] = self.ERROR
                     return """
-
+        self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+            1)]
         hijos_tipo = [self.tipoNodo[i] for i in ctx.children if isinstance(
             i, decafAlejandroV2Parser.StatementContext)]
         filtered = list(filter(lambda tipo: tipo != self.VOID, hijos_tipo))
@@ -546,9 +549,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             self.tipoNodo[ctx] = filtered.pop()
         else:
             self.tipoNodo[ctx] = self.ERROR
-
-        self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
-            1)]
 
     def visitNodes(self, params):
         innerArray = []
