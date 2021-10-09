@@ -16,6 +16,7 @@ from antlr4 import *
 from antlr4.tree.Trees import TerminalNode
 from funciones import *
 from ErrorClass import *
+from nodoBoolean import NodoBooleano
 from symbolTable import *
 import emoji
 import sys
@@ -24,6 +25,7 @@ from itertools import groupby
 from symbolTable import *
 # we import Node
 from NodoCodigo import *
+from nodoBoolean import *
 
 
 class MyErrorListener(ErrorListener):
@@ -77,6 +79,8 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.contadorGlobalNodos = 0
         self.contadorTemporales = 0
         self.arrayProduccionesTerminadas = []
+        self.contadorGTrue = 0
+        self.contadorGFalse = 0
         super().__init__()
 
     def popScope(self):
@@ -532,6 +536,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
                 if self.tipoNodo[child] == self.ERROR:
                     self.tipoNodo[ctx] = self.ERROR
                     return """
+        print(ctx.getChild(1).getText())
         self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
             1)]
         hijos_tipo = [self.tipoNodo[i] for i in ctx.children if isinstance(
@@ -609,20 +614,19 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         else:
             return nodo.return_type().getText()
 
+    def generateLabelforIF(self, valor):
+        innerValue = ""
+        if(valor == "true"):
+            innerValue = f'IF_TRUE_{self.contadorGTrue}'
+        elif(valor == "false"):
+            innerValue = f'IF_FALSE_{self.contadorGTrue}'
+            self.contadorGTrue += 1
+        else:
+            innerValue = f'{valor}:'
+
+        return innerValue
+
     def exitStatement_if(self, ctx: decafAlejandroV2Parser.Statement_ifContext):
-        error = self.ChildrenHasError(ctx)
-        if error:
-            self.tipoNodo[ctx] = self.ERROR
-            return
-
-        tipo_if = self.tipoNodo[ctx.expr()]
-
-        if tipo_if != self.BOOLEAN:
-            self.tipoNodo[ctx] = self.ERROR
-            line = ctx.expr().start.line
-            col = ctx.expr().start.column
-            self.errores.AddEntryToTable(line, col, self.errores.errrorText_IF)
-            return
 
         hijos_tipo = [i for i in ctx.children if isinstance(
             i, decafAlejandroV2Parser.BlockContext)]
@@ -631,44 +635,21 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             hijo_1 = hijos_tipo.pop()
             if tipo_return == self.tipoNodo[hijo_1]:
                 self.tipoNodo[ctx] = self.tipoNodo[hijo_1]
-            else:
-                self.tipoNodo[ctx] = self.ERROR
-                line = hijo_1.start.line
-                col = hijo_1.start.column
-                self.errores.AddEntryToTable(
-                    line, col, self.errores.errrorText_TIPO_RETORNO)
         else:
-            if self.tipoNodo[hijos_tipo[0]] != tipo_return and self.tipoNodo[hijos_tipo[1]] != tipo_return:
-                self.tipoNodo[ctx] = self.ERROR
-                line = hijos_tipo[0].start.line
-                col = hijos_tipo[0].start.column
-                self.errores.AddEntryToTable(
-                    line, col, self.errores.errrorText_TIPO_RETORNO)
-
-                line = hijos_tipo[1].start.line
-                col = hijos_tipo[1].start.column
-                self.errores.AddEntryToTable(
-                    line, col, self.errores.errrorText_TIPO_RETORNO)
-                return
-            elif self.tipoNodo[hijos_tipo[0]] != tipo_return:
-                self.tipoNodo[ctx] = self.ERROR
-                line = hijos_tipo[0].start.line
-                col = hijos_tipo[0].start.column
-                self.errores.AddEntryToTable(
-                    line, col, self.errores.errrorText_TIPO_RETORNO)
-                return
-            elif self.tipoNodo[hijos_tipo[1]] != tipo_return:
-                self.tipoNodo[ctx] = self.ERROR
-                line = hijos_tipo[1].start.line
-                col = hijos_tipo[1].start.column
-                self.errores.AddEntryToTable(
-                    line, col, self.errores.errrorText_TIPO_RETORNO)
-                return
-
             if self.tipoNodo[hijos_tipo[0]] == self.tipoNodo[hijos_tipo[1]]:
                 self.tipoNodo[ctx] = self.tipoNodo[hijos_tipo.pop()]
-            else:
-                self.tipoNodo[ctx] = self.ERROR
+        # instanciamos nodo nuevo
+        nodoS = NodoBooleano()
+        nodoB = self.dictCodigoIntermedio[ctx.expr()]
+        nodoS1 = self.dictCodigoIntermedio[ctx.getChild(4)]
+        #B = self.visitar(ctx.expression())
+        nodoB.setTrue(self.generateLabelforIF("true"))
+        # endIf = nuevaEtiqueta(endIf)
+        labelEndIF = self.generateLabelforIF("false")
+        codigoAunado = nodoB.getCode() + '\n' + (' IF ' + f't{self.contadorTemporales-1} > 0 '  f'GOTO {nodoB.getTrue()}') + '\n' +\
+            ('GOTO ' + labelEndIF) + '\n' + self.generateLabelforIF(nodoB.getTrue()) + nodoS1.getCode() + '\n' + self.generateLabelforIF(labelEndIF)
+        nodoS.setCode(codigoAunado)
+        self.arrayProduccionesTerminadas.append(codigoAunado)
 
     def exitStatement_while(self, ctx: decafAlejandroV2Parser.Statement_whileContext):
         error = self.ChildrenHasError(ctx)
@@ -810,9 +791,19 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.dictCodigoIntermedio[ctx] = menosNode
 
     def exitExpr_normal(self, ctx: decafAlejandroV2Parser.Expr_normalContext):
-        self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
-            0)]
-        self.tipoNodo[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+        if ctx.eq_op() is not None:
+            # si es una operacion de equal
+            nuevaTemporal = self.generateTemporal()
+            nodoEqual = NodoBooleano()
+            nodoConData = self.dictCodigoIntermedio[ctx.getChild(0)]
+            codigoAunado = nuevaTemporal + " = " + nodoConData.getAddress() + " " + ctx.eq_op().getText() + " " + \
+                ctx.getChild(2).getText()
+            nodoEqual.setCode(codigoAunado)
+            self.dictCodigoIntermedio[ctx] = nodoEqual
+        else:
+            self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+                0)]
+        self.tipoNodo[ctx] = self.tipoNodo[ctx.getChild(
             0)]
 
     def exitExpr_PrecedenciaMax(self, ctx: decafAlejandroV2Parser.Expr_PrecedenciaMaxContext):
