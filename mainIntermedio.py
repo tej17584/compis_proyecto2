@@ -687,10 +687,10 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             nodoB.setTrue(self.generateLabelforIF('true'))
             nodoB.setFalse(self.generateLabelforIF('false'))
 
-            codigoAunado = nodoB.getCode() + (' IF ' + f't{self.contadorTemporales-1} > 0 GOTO {nodoB.getTrue()} \n ') + \
-                (f'GOTO {nodoB.getFalse()} \n ') + self.generateLabelforIF(nodoB.getTrue()) + '\n '+" " + S1.getCode() + '\n ' + \
-                (f' GOTO {endIf}') + '\n ' + self.generateLabelforIF(nodoB.getFalse()
-                                                                     ) + '\n ' + " " + S2.getCode() + '\n ' + self.generateLabelforIF(endIf) + '\n '
+            codigoAunado = nodoB.getCode() + '\n' + ('IF ' + f't{self.contadorTemporales-1} > 0 GOTO {nodoB.getTrue()} \n') + \
+                (f'GOTO {nodoB.getFalse()} \n') + self.generateLabelforIF(nodoB.getTrue()) + '\n '+" " + S1.getCode() + '\n ' + \
+                (f' GOTO {endIf}') + '\n' + self.generateLabelforIF(nodoB.getFalse()
+                                                                    ) + '\n ' + " " + S2.getCode() + '\n' + self.generateLabelforIF(endIf) + '\n '
 
         nodoState.setCode(codigoAunado)
         self.dictCodigoIntermedio[ctx] = nodoState
@@ -842,6 +842,24 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
                 ctx.getChild(2).getText()
             nodoEqual.setCode(codigoAunado)
             self.dictCodigoIntermedio[ctx] = nodoEqual
+        elif ctx.rel_op() is not None:
+            # si es una operacion de equal
+            nuevaTemporal = self.generateTemporal()
+            nodoRel = NodoBooleano()
+            nodoConData = self.dictCodigoIntermedio[ctx.getChild(0)]
+            codigoAunado = nuevaTemporal + " = " + nodoConData.getAddress() + " " + ctx.rel_op().getText() + " " + \
+                ctx.getChild(2).getText()
+            nodoRel.setCode(codigoAunado)
+            self.dictCodigoIntermedio[ctx] = nodoRel
+        elif ctx.cond_op() is not None:
+            # si es una operacion de equal
+            nuevaTemporal = self.generateTemporal()
+            nodoCond = NodoBooleano()
+            nodoConData = self.dictCodigoIntermedio[ctx.getChild(0)]
+            codigoAunado = nuevaTemporal + " = " + nodoConData.getAddress() + " " + ctx.cond_op().getText() + " " + \
+                ctx.getChild(2).getText()
+            nodoCond.setCode(codigoAunado)
+            self.dictCodigoIntermedio[ctx] = nodoCond
         else:
             self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
                 0)]
