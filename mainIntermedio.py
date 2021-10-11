@@ -812,7 +812,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         # anidamos codigo por la regla semantica
         # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
         codigoAunado = NodoE1.getCode() + (menosNode.getAddress() + " =  MENOS " +
-                                                  NodoE1.getAddress()) + '\n'
+                                           NodoE1.getAddress()) + '\n'
         # agregamos el codigo al nodo de E
         menosNode.addCode(codigoAunado)
         # agregamos el nodo a los nodos globales
@@ -842,8 +842,9 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             nuevaTemporal = self.generateTemporal()
             nodoEqual = NodoBooleano()
             nodoConData = self.dictCodigoIntermedio[ctx.getChild(0)]
+            nodoConData2 = self.dictCodigoIntermedio[ctx.getChild(2)]
             codigoAunado = nuevaTemporal + " = " + nodoConData.getAddress() + " " + ctx.eq_op().getText() + " " + \
-                ctx.getChild(2).getText()
+                nodoConData2.getAddress()
             nodoEqual.setCode(codigoAunado)
             self.dictCodigoIntermedio[ctx] = nodoEqual
         elif ctx.rel_op() is not None:
@@ -851,8 +852,9 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             nuevaTemporal = self.generateTemporal()
             nodoRel = NodoBooleano()
             nodoConData = self.dictCodigoIntermedio[ctx.getChild(0)]
+            nodoConData2 = self.dictCodigoIntermedio[ctx.getChild(2)]
             codigoAunado = nuevaTemporal + " = " + nodoConData.getAddress() + " " + ctx.rel_op().getText() + " " + \
-                ctx.getChild(2).getText()
+                nodoConData2.getAddress()
             nodoRel.setCode(codigoAunado)
             self.dictCodigoIntermedio[ctx] = nodoRel
         elif ctx.cond_op() is not None:
@@ -860,8 +862,9 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             nuevaTemporal = self.generateTemporal()
             nodoCond = NodoBooleano()
             nodoConData = self.dictCodigoIntermedio[ctx.getChild(0)]
+            nodoConData2 = self.dictCodigoIntermedio[ctx.getChild(2)]
             codigoAunado = nuevaTemporal + " = " + nodoConData.getAddress() + " " + ctx.cond_op().getText() + " " + \
-                ctx.getChild(2).getText()
+                nodoConData2.getAddress()
             nodoCond.setCode(codigoAunado)
             self.dictCodigoIntermedio[ctx] = nodoCond
         else:

@@ -11,9 +11,9 @@ class Program{
 		int a;
 		int b;
 		int c;
-		while(a>=10)
-		{
-			b = c;
-		}
+		while(a>10)
+    	 {
+    		b = (c);
+    	 }
 	}
 }
