@@ -419,6 +419,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.tipoNodo[ctx] = self.INT
         # creamos un nuevo nodo
         nodoS = Nodo(self.contadorGlobalNodos)
+        nodoS.addAddress(ctx.getText())
         self.contadorGlobalNodos += 1
         self.dictCodigoIntermedio[ctx] = nodoS
 

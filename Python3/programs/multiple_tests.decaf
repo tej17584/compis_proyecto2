@@ -10,8 +10,7 @@ class Program{
 	void main(void) {
 		int a;
 		int b;
-		if(a == 2){
-			b = 3;
-		}
+		int c;
+		c = 5 + b * 2;
 	}
 }
