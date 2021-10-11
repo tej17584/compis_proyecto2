@@ -811,7 +811,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         menosNode.addAddress(innerTemporal)
         # anidamos codigo por la regla semantica
         # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
-        codigoAunado = '\n' + NodoE1.getCode() + (menosNode.getAddress() + " =  MENOS " +
+        codigoAunado = NodoE1.getCode() + (menosNode.getAddress() + " =  MENOS " +
                                                   NodoE1.getAddress()) + '\n'
         # agregamos el codigo al nodo de E
         menosNode.addCode(codigoAunado)
