@@ -697,25 +697,29 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.arrayProduccionesTerminadas.append(codigoAunado)
 
     def exitStatement_while(self, ctx: decafAlejandroV2Parser.Statement_whileContext):
-        error = self.ChildrenHasError(ctx)
-        if error:
-            self.tipoNodo[ctx] = self.ERROR
-            return
-
-        tipo_while = self.tipoNodo[ctx.expr()]
-
-        if tipo_while != self.BOOLEAN:
-            self.tipoNodo[ctx] = self.ERROR
-            line = ctx.expr().start.line
-            col = ctx.expr().start.column
-            self.errores.AddEntryToTable(
-                line, col, self.errores.errrorText_WHILE)
-            return
-
         hijos_tipo = [self.tipoNodo[i] for i in ctx.children if isinstance(
             i, decafAlejandroV2Parser.BlockContext)]
         if len(hijos_tipo) == 1:
             self.tipoNodo[ctx] = hijos_tipo.pop()
+        # codigo para nodo Booleano
+        nodoWhile = NodoBooleano()
+        nodoB = self.dictCodigoIntermedio[ctx.expr()]
+        nodoS1 = self.dictCodigoIntermedio[ctx.getChild(4)]
+
+        lblInicioWhile = self.generateLabelforWhile('startwhile')
+        nodoB.setTrue(self.generateLabelforWhile('true'))
+        nodoB.setFalse(self.generateLabelforWhile('endwhile'))
+
+        codigoAunado = ' ' + lblInicioWhile + '\n  ' + nodoB.getCode() + '\n' +  \
+            ('  IF ' + f't{self.contadorTemporales-1} > 0 ' + f'GOTO {nodoB.getTrue()}') + '\n ' + \
+            (f' GOTO {nodoB.getFalse()}') + '\n  ' + self.generateLabelforWhile(nodoB.getTrue()) + '\n ' + '  ' + nodoS1.getCode() + '\n  ' +\
+            (f' GOTO {lblInicioWhile}') + '\n ' + \
+            self.generateLabelforWhile(nodoB.getFalse())
+
+        nodoWhile.setCode(codigoAunado)
+
+        self.dictCodigoIntermedio[ctx] = nodoWhile
+        self.arrayProduccionesTerminadas.append(codigoAunado)
 
     def exitStatement_return(self, ctx: decafAlejandroV2Parser.Statement_returnContext):
         # si es una suma y creamos un nodoo nuevo
