@@ -61,7 +61,7 @@ class NodoBooleano():
         """
         return self.falseValue
 
-    def setTrue(self, value):
+    def setFalse(self, value):
         """
         Agrega el false
         *@param: value: el nuevo valor false

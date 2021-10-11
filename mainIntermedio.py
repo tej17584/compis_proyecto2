@@ -66,7 +66,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.ambitos = []
         self.scope_Actual = None
         self.metodos = []
-        self.metodo_Actual = None
+        self.metodo_Actual = "GLOBAL"
         self.tablaVariables = dictTableVars()
         self.errores = SemanticError()
         self.tabla_metodos = dictTableMetods()
@@ -80,7 +80,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.contadorTemporales = 0
         self.arrayProduccionesTerminadas = []
         self.contadorGTrue = 0
-        self.contadorGFalse = 0
+        self.contadorWhile = 0
         super().__init__()
 
     def popScope(self):
@@ -127,7 +127,10 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             for scope in innerArray:
                 innerVar2 = scope.getSymbolFromTable(variable)
                 if innerVar2 != 0:
-                    return innerVar2, "GLOBAL"
+                    if(self.metodo_Actual == "GLOBAL"):
+                        return innerVar2, "GLOBAL"
+                    else:
+                        return innerVar2, "ANOTHER"
             return 0
         else:
             if(len(self.ambitos) == 0):
@@ -229,14 +232,13 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
     def exitMethod_declr(self, ctx: decafAlejandroV2Parser.Method_declrContext):
         metodo = ctx.method_name().getText()
-        # ALEJANDRO CHANGES ---
-        self.popMethodActual()
         name = ctx.method_name().getText()
         self.arrayProduccionesTerminadas.append(f'END DEF {name.upper()} \n\n')
         # <--------->
         self.tabla_parametros.cleanTable()
         self.popScope()
-
+        # ALEJANDRO CHANGES ---
+        self.popMethodActual()
         self.tipoNodo[ctx] = self.VOID
         self.dictCodigoIntermedio[ctx] = ctx
 
@@ -525,12 +527,15 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
         if not isinstance(parent, decafAlejandroV2Parser.Method_declrContext):
             self.addScope()
+            self.addMethodActual("BLOCK")
 
     def exitBlock(self, ctx: decafAlejandroV2Parser.BlockContext):
         parent = ctx.parentCtx
 
         if not isinstance(parent, decafAlejandroV2Parser.Method_declrContext):
             self.popScope()
+            # ALEJANDRO CHANGES ---
+            self.popMethodActual()
 
         """ for child in ctx.children:
             if not isinstance(child, TerminalNode):
@@ -615,6 +620,24 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         else:
             return nodo.return_type().getText()
 
+    def nuevaEtiquetaWhile(self, valor):
+        innerValue = ''
+        if valor == 'startwhile':
+            innerValue = f'WHILE_LOOP_{self.contadorWhile}'
+        elif valor == 'endwhile':
+            print('entra')
+            innerValue = f'END_WHILE_{self.contadorWhile}'
+            self.contadorWhile += 1
+        elif valor == 'true':
+            innerValue = f'IF_TRUE_{self.contadorGTrue}'
+        elif valor == 'false':
+            innerValue = f'IF_FALSE_{self.contadorGTrue}'
+            self.contadorGTrue += 1
+        else:
+            innerValue = f'{valor}:'
+
+        return innerValue
+
     def generateLabelforIF(self, valor):
         innerValue = ""
         if(valor == "true"):
@@ -622,6 +645,8 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         elif(valor == "false"):
             innerValue = f'IF_FALSE_{self.contadorGTrue}'
             self.contadorGTrue += 1
+        elif valor == 'endIf':
+            innerValue = f'END_IF_{self.contadorGTrue}'
         else:
             innerValue = f'{valor}:'
 
@@ -640,16 +665,35 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             if self.tipoNodo[hijos_tipo[0]] == self.tipoNodo[hijos_tipo[1]]:
                 self.tipoNodo[ctx] = self.tipoNodo[hijos_tipo.pop()]
         # instanciamos nodo nuevo
-        nodoS = NodoBooleano()
-        nodoB = self.dictCodigoIntermedio[ctx.expr()]
-        nodoS1 = self.dictCodigoIntermedio[ctx.getChild(4)]
-        #B = self.visitar(ctx.expression())
-        nodoB.setTrue(self.generateLabelforIF("true"))
-        # endIf = nuevaEtiqueta(endIf)
-        labelEndIF = self.generateLabelforIF("false")
-        codigoAunado = nodoB.getCode() + '\n' + (' IF ' + f't{self.contadorTemporales-1} > 0 '  f'GOTO {nodoB.getTrue()}') + '\n' +\
-            ('GOTO ' + labelEndIF) + '\n' + self.generateLabelforIF(nodoB.getTrue()) + nodoS1.getCode() + '\n' + self.generateLabelforIF(labelEndIF)
-        nodoS.setCode(codigoAunado)
+        if len(ctx.block()) == 1:
+            nodoState = NodoBooleano()
+            nodoB = self.dictCodigoIntermedio[ctx.expr()]
+            nodoS1 = self.dictCodigoIntermedio[ctx.getChild(4)]
+            #B = self.visitar(ctx.expression())
+            label = self.generateLabelforIF("true")
+            nodoB.setTrue(label)
+            labelEndIF = self.generateLabelforIF("false")
+            # labelEndIF = nuevaEtiqueta(labelEndIF)
+            codigoAunado = nodoB.getCode() + '\n' + ('IF ' + f't{self.contadorTemporales-1} > 0 '  f'GOTO {nodoB.getTrue()}') + '\n' +\
+                ('GOTO ' + labelEndIF) + '\n' + self.generateLabelforIF(nodoB.getTrue()) + \
+                '\n' + ' ' + nodoS1.getCode() + '\n' + self.generateLabelforIF(labelEndIF)
+        else:
+            nodoState = NodoBooleano()
+            nodoB = self.dictCodigoIntermedio[ctx.expr()]
+            S1 = self.dictCodigoIntermedio[ctx.block()[0]]
+            S2 = self.dictCodigoIntermedio[ctx.block()[1]]
+
+            endIf = self.generateLabelforIF('endIf')
+            nodoB.setTrue(self.generateLabelforIF('true'))
+            nodoB.setFalse(self.generateLabelforIF('false'))
+
+            codigoAunado = nodoB.getCode() + (' IF ' + f't{self.contadorTemporales-1} > 0 GOTO {nodoB.getTrue()} \n ') + \
+                (f'GOTO {nodoB.getFalse()} \n ') + self.generateLabelforIF(nodoB.getTrue()) + '\n ' + S1.getCode() + '\n ' + \
+                (f' GOTO {endIf}') + '\n ' + self.generateLabelforIF(nodoB.getFalse()
+                                                                     ) + '\n ' + S2.getCode() + '\n ' + self.nuevaEtiquetaIf(endIf)
+
+        nodoState.setCode(codigoAunado)
+        self.dictCodigoIntermedio[ctx] = nodoState
         self.arrayProduccionesTerminadas.append(codigoAunado)
 
     def exitStatement_while(self, ctx: decafAlejandroV2Parser.Statement_whileContext):
@@ -702,12 +746,9 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.tipoNodo[ctx] = self.VOID
 
     def exitStatement_assign(self, ctx: decafAlejandroV2Parser.Statement_assignContext):
-
         result_type = self.VOID
-
         nodoI = self.dictCodigoIntermedio[ctx.location()]
         nodoE = self.dictCodigoIntermedio[ctx.expr()]
-
         # creamos un nuevo nodo
         nodoS = Nodo(self.contadorGlobalNodos)
         self.contadorGlobalNodos += 1

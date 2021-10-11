@@ -11,6 +11,8 @@ class Program{
 		int a;
 		int b;
 		int c;
-		c = 5 + b * 2;
+		if(a==2){
+			b = 3;
+		}
 	}
 }
