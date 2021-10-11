@@ -620,7 +620,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         else:
             return nodo.return_type().getText()
 
-    def nuevaEtiquetaWhile(self, valor):
+    def generateLabelforWhile(self, valor):
         innerValue = ''
         if valor == 'startwhile':
             innerValue = f'WHILE_LOOP_{self.contadorWhile}'
@@ -676,7 +676,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             # labelEndIF = nuevaEtiqueta(labelEndIF)
             codigoAunado = nodoB.getCode() + '\n' + ('IF ' + f't{self.contadorTemporales-1} > 0 '  f'GOTO {nodoB.getTrue()}') + '\n' +\
                 ('GOTO ' + labelEndIF) + '\n' + self.generateLabelforIF(nodoB.getTrue()) + \
-                '\n' + ' ' + nodoS1.getCode() + '\n' + self.generateLabelforIF(labelEndIF)
+                '\n' + ' ' + nodoS1.getCode() + '\n' + self.generateLabelforIF(labelEndIF) + '\n'
         else:
             nodoState = NodoBooleano()
             nodoB = self.dictCodigoIntermedio[ctx.expr()]
@@ -688,9 +688,9 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             nodoB.setFalse(self.generateLabelforIF('false'))
 
             codigoAunado = nodoB.getCode() + (' IF ' + f't{self.contadorTemporales-1} > 0 GOTO {nodoB.getTrue()} \n ') + \
-                (f'GOTO {nodoB.getFalse()} \n ') + self.generateLabelforIF(nodoB.getTrue()) + '\n ' + S1.getCode() + '\n ' + \
+                (f'GOTO {nodoB.getFalse()} \n ') + self.generateLabelforIF(nodoB.getTrue()) + '\n '+" " + S1.getCode() + '\n ' + \
                 (f' GOTO {endIf}') + '\n ' + self.generateLabelforIF(nodoB.getFalse()
-                                                                     ) + '\n ' + S2.getCode() + '\n ' + self.nuevaEtiquetaIf(endIf)
+                                                                     ) + '\n ' + " " + S2.getCode() + '\n ' + self.generateLabelforIF(endIf) + '\n '
 
         nodoState.setCode(codigoAunado)
         self.dictCodigoIntermedio[ctx] = nodoState
