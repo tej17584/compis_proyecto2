@@ -813,6 +813,8 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
     def exitStatement_assign(self, ctx: decafAlejandroV2Parser.Statement_assignContext):
         result_type = self.VOID
+        parent = ctx.parentCtx
+        abuelito = parent.parentCtx
         nodoI = self.dictCodigoIntermedio[ctx.location()]
         nodoE = self.dictCodigoIntermedio[ctx.expr()]
         # creamos un nuevo nodo
@@ -844,7 +846,8 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
         # agregamos el dict de nodos globales
         self.dictCodigoIntermedio[ctx] = nodoS
-        self.arrayProduccionesTerminadas.append(codigoAunado)
+        if not isinstance(abuelito, decafAlejandroV2Parser.Statement_ifContext):
+            self.arrayProduccionesTerminadas.append(codigoAunado)
         # print(nodo.getNode())
         # # TODO verificar cuando hay que hacer append y cuando no
         self.tipoNodo[ctx] = result_type

@@ -4,6 +4,12 @@ class Program{
 		int a;
 		int b;
 		int c;
-		a = b * 3;
+		int d;
+		if ( (a>3) || (b>10)){
+			a = 10;
+			c = b * d;
+		}
+
+
 	}
 }
