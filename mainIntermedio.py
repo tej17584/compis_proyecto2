@@ -95,6 +95,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.metodo_Actual = self.metodos.pop()
 
     def addMethodActual(self, metodo):
+        self.metodo_Actual = metodo
         self.metodos.append(metodo)
 
     def findVar(self, variable):
@@ -428,8 +429,17 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
     def exitBool_literal(self, ctx: decafAlejandroV2Parser.Bool_literalContext):
         self.tipoNodo[ctx] = self.BOOLEAN
         # creamos un nuevo nodo
-        nodoS = Nodo(self.contadorGlobalNodos)
-        self.contadorGlobalNodos += 1
+        """ nodoS = Nodo(self.contadorGlobalNodos)
+        self.contadorGlobalNodos += 1 """
+        nodoS = NodoBooleano()
+        if ctx.getText() == "True":
+            labelTrue = self.generateLabelforIF("true")
+            nodoS.setTrue(labelTrue)
+            nodoS.setCode(f'GOTO {nodoS.getTrue()} ')
+        elif ctx.getText() == "False":
+            labelFalse = self.generateLabelforIF("false")
+            nodoS.setFalse(labelFalse)
+            nodoS.setCode(f'GOTO {nodoS.getFalse()} ')
         self.dictCodigoIntermedio[ctx] = nodoS
 
     def exitLiteral(self, ctx: decafAlejandroV2Parser.LiteralContext):
@@ -870,8 +880,8 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         else:
             self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
                 0)]
-        self.tipoNodo[ctx] = self.tipoNodo[ctx.getChild(
-            0)]
+        """ self.tipoNodo[ctx] = self.tipoNodo[ctx.getChild(
+            0)] """
 
     def exitExpr_PrecedenciaMax(self, ctx: decafAlejandroV2Parser.Expr_PrecedenciaMaxContext):
         # si es una operacion aritmética

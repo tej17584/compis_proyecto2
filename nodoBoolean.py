@@ -15,6 +15,7 @@ class NodoBooleano():
         self.siguiente = ""
         self.trueValue = ""
         self.falseValue = ""
+        self.address = ""
 
     def getCode(self):
         """
@@ -67,3 +68,16 @@ class NodoBooleano():
         *@param: value: el nuevo valor false
         """
         self.falseValue = value
+
+    def getAddress(self):
+        """
+        Retorna la direccion del nodo
+        """
+        return self.address
+
+    def addAddress(self, address):
+        """
+        Agrega la direccion al nodito
+        *@param: address: la address a agregar al nodito
+        """
+        self.address = address
