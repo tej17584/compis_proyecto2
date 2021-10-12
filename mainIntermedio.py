@@ -479,34 +479,37 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         """
         New logic
         """
-        name = ctx.ID().getText()
-        variable = self.findVar(name)
-        tipo = variable['Tipo']
-        tipo = tipo.split('array')[-1]
-        nodo = Nodo(self.contadorGlobalNodos)
-        self.contadorGlobalNodos += 1
-        Expression = 0
-        if ctx.int_literal():
-            Expression = self.dictCodigoIntermedio[ctx.int_literal()]
-        elif ctx.var_id():
-            Expression = self.dictCodigoIntermedio[ctx.var_id()]
-        cantTipo = 0
+        if not isinstance(parent, decafAlejandroV2Parser.Field_varContext):
+            name = ctx.ID().getText()
+            variable = self.findVar(name)
+            tipo = variable['Tipo']
+            tipo = tipo.split('array')[-1]
+            nodo = Nodo(self.contadorGlobalNodos)
+            self.contadorGlobalNodos += 1
+            Expression = 0
+            if ctx.int_literal():
+                Expression = self.dictCodigoIntermedio[ctx.int_literal()]
+            elif ctx.var_id():
+                Expression = self.dictCodigoIntermedio[ctx.var_id()]
+            cantTipo = 0
 
-        if tipo == 'int':
-            cantTipo = 4
-        elif tipo == 'char':
-            cantTipo = 2
-        elif tipo == 'boolean':
-            cantTipo = 1
-        temp1 = self.generateTemporal()
-        temp2 = self.generateTemporal()
-        offset = variable["Offset"]
-        nodo.addAddress(self.generateLabelforArray(variable, temp2))
-        codigoConcat = ' ' + Expression.getCode() + \
-            (str(temp1) + ' = ' + str(cantTipo) + ' * ' + Expression.getAddress()) + '\n ' + \
-            (str(temp2) + ' = ' + str(offset) + ' + ' + str(temp1)) + '\n'
-        nodo.addCode(codigoConcat)
-
+            if tipo == 'int':
+                cantTipo = 4
+            elif tipo == 'char':
+                cantTipo = 2
+            elif tipo == 'boolean':
+                cantTipo = 1
+            temp1 = self.generateTemporal()
+            temp2 = self.generateTemporal()
+            offset = variable["Offset"]
+            nodo.addAddress(self.generateLabelforArray(variable, temp2))
+            codigoConcat = ' ' + Expression.getCode() + \
+                (str(temp1) + ' = ' + str(cantTipo) + ' * ' + Expression.getAddress()) + '\n ' + \
+                (str(temp2) + ' = ' + str(offset) + ' + ' + str(temp1)) + '\n'
+            nodo.addCode(codigoConcat)
+        else:
+            nodo = Nodo(self.contadorGlobalNodos)
+            self.contadorGlobalNodos += 1
         self.dictCodigoIntermedio[ctx] = nodo
 
     def exitVar_type(self, ctx: decafAlejandroV2Parser.Var_typeContext):
@@ -723,7 +726,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             #B = self.visitar(ctx.expression())
             label = self.generateLabelforIF("true")
             nodoB.setTrue(label)
-            print(nodoB.getCode().split("\n"))
             if(len(nodoB.getCode().split("\n")) >= 2):
                 valueTemporal = nodoB.getCode().split(
                     "\n")[2].split("=")[0].strip()
@@ -816,18 +818,35 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         # creamos un nuevo nodo
         nodoS = Nodo(self.contadorGlobalNodos)
         self.contadorGlobalNodos += 1
-        # generamos el codigo intermedio necesario para la id
-        id = ctx.location().var_id().getText()
-        innerIntermedio = self.generateTopeGet(id)
+        nombre = ''
+        codigoAunado = ""
         # concatenamos codigo segun regla S.codigo = E.codigo ||
-        # gen(tope.get (id.lexema) '=' E.dir)
-        codigoAunado = nodoE.getCode() + (innerIntermedio + " = " + nodoE.getAddress())
+        if ctx.location().var_id():
+            nombre = ctx.location().var_id().getText()
+            variable2 = self.findVar(nombre)
+            variable = variable2["Id"]
+        elif ctx.location().array_id():
+            nombre = ctx.location().array_id().ID().getText()
+            variable2 = self.findVar(nombre)
+            variable = variable2["Id"]
+
+        if nodoI.getCode() != '' and nodoE.getCode() == '':
+            codigoAunado = nodoI.getCode() + (' ' + nodoI.getAddress() +
+                                              ' = ' + nodoE.getAddress())
+        elif nodoI.getCode() != '' and nodoE.getCode() != '':
+            codigoAunado = nodoI.getCode() + nodoE.getCode() + \
+                (' ' + nodoI.getAddress() + ' = ' + nodoE.getAddress())
+        else:
+            codigoAunado = nodoE.getCode() + (' ' + self.generateTopeGet(variable) +
+                                              " = " + nodoE.getAddress())
         # agregamos el codigo para ID
         nodoS.addCode(codigoAunado)
+
         # agregamos el dict de nodos globales
         self.dictCodigoIntermedio[ctx] = nodoS
-        self.arrayProduccionesTerminadas.append(nodoS.getCode())
-
+        self.arrayProduccionesTerminadas.append(codigoAunado)
+        # print(nodo.getNode())
+        # # TODO verificar cuando hay que hacer append y cuando no
         self.tipoNodo[ctx] = result_type
 
     def exitExpr_location(self, ctx: decafAlejandroV2Parser.Expr_locationContext):
