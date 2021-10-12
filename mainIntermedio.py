@@ -682,9 +682,18 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             #B = self.visitar(ctx.expression())
             label = self.generateLabelforIF("true")
             nodoB.setTrue(label)
+            print(nodoB.getCode().split("\n"))
+            if(len(nodoB.getCode().split("\n")) >= 2):
+                valueTemporal = nodoB.getCode().split(
+                    "\n")[2].split("=")[0].strip()
+            else:
+                if(len(nodoB.getCode().split("=")) != 0):
+                    valueTemporal = nodoB.getCode().split("=")[0].strip()
+                else:
+                    valueTemporal = f't{self.contadorTemporales-1}'
             labelEndIF = self.generateLabelforIF("false")
             # labelEndIF = nuevaEtiqueta(labelEndIF)
-            codigoAunado = nodoB.getCode() + '\n' + ('IF ' + f't{self.contadorTemporales-1} > 0 '  f'GOTO {nodoB.getTrue()}') + '\n' +\
+            codigoAunado = nodoB.getCode() + '\n' + ('IF ' + f'{valueTemporal} > 0 '  f'GOTO {nodoB.getTrue()}') + '\n' +\
                 ('GOTO ' + labelEndIF) + '\n' + self.generateLabelforIF(nodoB.getTrue()) + \
                 '\n' + ' ' + nodoS1.getCode() + '\n' + self.generateLabelforIF(labelEndIF) + '\n'
         else:
@@ -858,7 +867,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             nodoEqual.setCode(codigoAunado)
             self.dictCodigoIntermedio[ctx] = nodoEqual
         elif ctx.rel_op() is not None:
-            # si es una operacion de equal
+            # si es una operacion de de relacion
             nuevaTemporal = self.generateTemporal()
             nodoRel = NodoBooleano()
             nodoConData = self.dictCodigoIntermedio[ctx.getChild(0)]
@@ -868,13 +877,20 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             nodoRel.setCode(codigoAunado)
             self.dictCodigoIntermedio[ctx] = nodoRel
         elif ctx.cond_op() is not None:
-            # si es una operacion de equal
+            # si es una operacion de condOP
             nuevaTemporal = self.generateTemporal()
             nodoCond = NodoBooleano()
             nodoConData = self.dictCodigoIntermedio[ctx.getChild(0)]
             nodoConData2 = self.dictCodigoIntermedio[ctx.getChild(2)]
-            codigoAunado = nuevaTemporal + " = " + nodoConData.getAddress() + " " + ctx.cond_op().getText() + " " + \
-                nodoConData2.getAddress()
+            if(ctx.cond_op().getText() == "&&" or ctx.cond_op().getText() == "||"):  # si es un AND
+                codigoAunado = nodoConData.getCode() + '\n' + nodoConData2.getCode() + '\n' + nuevaTemporal + " = " + \
+                    f'{nodoConData.getCode().split("=")[0]}' + " " + \
+                    ctx.cond_op().getText() + \
+                    f' {nodoConData2.getCode().split("=")[0] }'
+                print("S")
+            else:
+                codigoAunado = nuevaTemporal + " = " + nodoConData.getAddress() + " " + ctx.cond_op().getText() + " " + \
+                    nodoConData2.getAddress()
             nodoCond.setCode(codigoAunado)
             self.dictCodigoIntermedio[ctx] = nodoCond
         else:

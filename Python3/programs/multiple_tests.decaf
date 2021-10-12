@@ -4,8 +4,6 @@ class Program{
 		int a;
 		int b;
 		int c;
-		if((a > 3) && (b < 6)){
-    		b = 5;
-    	 }
+		a = b * 3;
 	}
 }
