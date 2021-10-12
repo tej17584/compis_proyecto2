@@ -415,6 +415,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.tipoNodo[ctx] = self.STRING
         # creamos un nuevo nodo
         nodoS = Nodo(self.contadorGlobalNodos)
+        nodoS.addAddress(ctx.getText())
         self.contadorGlobalNodos += 1
         self.dictCodigoIntermedio[ctx] = nodoS
 
@@ -431,7 +432,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         # creamos un nuevo nodo
         """ nodoS = Nodo(self.contadorGlobalNodos)
         self.contadorGlobalNodos += 1 """
-        nodoS = NodoBooleano()
+        """ nodoS = NodoBooleano()
         if ctx.getText() == "True":
             labelTrue = self.generateLabelforIF("true")
             nodoS.setTrue(labelTrue)
@@ -440,6 +441,10 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             labelFalse = self.generateLabelforIF("false")
             nodoS.setFalse(labelFalse)
             nodoS.setCode(f'GOTO {nodoS.getFalse()} ')
+        self.dictCodigoIntermedio[ctx] = nodoS """
+        nodoS = Nodo(self.contadorGlobalNodos)
+        nodoS.addAddress(ctx.getText())
+        self.contadorGlobalNodos += 1
         self.dictCodigoIntermedio[ctx] = nodoS
 
     def exitLiteral(self, ctx: decafAlejandroV2Parser.LiteralContext):
@@ -457,34 +462,52 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         parent = ctx.parentCtx
         if parent in self.tipoNodo.keys() or ctx in self.tipoNodo.keys():
             return
-
         id = ctx.getChild(0).getText()
         variable = self.findVar(id)
-        if variable == 0:
-            line = ctx.start.line
-            col = ctx.start.column
-            self.errores.AddEntryToTable(
-                line, col, f'Variable "{id}" no ha sido declarada previamente.')
-            self.tipoNodo[ctx] = self.ERROR
-        else:
-            tipo = variable['Tipo']
-            if ctx.int_literal() is not None:
-                if 'array' in tipo:
-                    if tipo.split('array')[-1] in [self.INT, self.STRING, self.BOOLEAN]:
-                        self.tipoNodo[ctx] = self.data_type[tipo.split(
-                            'array')[-1]]
-                    else:
-                        self.tipoNodo[ctx] = self.VOID
+        tipo = variable['Tipo']
+        if ctx.int_literal() is not None:
+            if 'array' in tipo:
+                if tipo.split('array')[-1] in [self.INT, self.STRING, self.BOOLEAN]:
+                    self.tipoNodo[ctx] = self.data_type[tipo.split(
+                        'array')[-1]]
                 else:
-                    line = ctx.start.line
-                    col = ctx.start.column
-                    self.errores.AddEntryToTable(
-                        line, col, f'Variable "{id}" debe ser del tipo ARRAY.')
-                    self.tipoNodo[ctx] = self.ERROR
-            elif ctx.var_id() is not None:
-                tipo = variable['Tipo']
-                tipo_var = self.findVar(ctx.var_id().getText())
-                self.CheckErrorInArrayId(ctx, tipo, tipo_var)
+                    self.tipoNodo[ctx] = self.VOID
+        elif ctx.var_id() is not None:
+            tipo = variable['Tipo']
+            tipo_var = self.findVar(ctx.var_id().getText())
+            self.CheckErrorInArrayId(ctx, tipo, tipo_var)
+        """
+        New logic
+        """
+        name = ctx.ID().getText()
+        variable = self.findVar(name)
+        tipo = variable['Tipo']
+        tipo = tipo.split('array')[-1]
+        nodo = Nodo(self.contadorGlobalNodos)
+        self.contadorGlobalNodos += 1
+        Expression = 0
+        if ctx.int_literal():
+            Expression = self.dictCodigoIntermedio[ctx.int_literal()]
+        elif ctx.var_id():
+            Expression = self.dictCodigoIntermedio[ctx.var_id()]
+        cantTipo = 0
+
+        if tipo == 'int':
+            cantTipo = 4
+        elif tipo == 'char':
+            cantTipo = 2
+        elif tipo == 'boolean':
+            cantTipo = 1
+        temp1 = self.generateTemporal()
+        temp2 = self.generateTemporal()
+        offset = variable["Offset"]
+        nodo.addAddress(self.generateLabelforArray(variable, temp2))
+        codigoConcat = ' ' + Expression.getCode() + \
+            (str(temp1) + ' = ' + str(cantTipo) + ' * ' + Expression.getAddress()) + '\n ' + \
+            (str(temp2) + ' = ' + str(offset) + ' + ' + str(temp1)) + '\n'
+        nodo.addCode(codigoConcat)
+
+        self.dictCodigoIntermedio[ctx] = nodo
 
     def exitVar_type(self, ctx: decafAlejandroV2Parser.Var_typeContext):
         self.tipoNodo[ctx] = self.VOID
@@ -552,9 +575,17 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
                 if self.tipoNodo[child] == self.ERROR:
                     self.tipoNodo[ctx] = self.ERROR
                     return """
-        print(ctx.getChild(1).getText())
-        self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
-            1)]
+        longitud = len(ctx.statement())
+        acumuladoNuevo = ""
+        nodoNuevo = Nodo(self.contadorGlobalNodos)
+        self.contadorGlobalNodos += 1
+        for x in range(0, longitud):
+            # acumulamos codigo
+            acumuladoNuevo = acumuladoNuevo + "\n " +\
+                self.dictCodigoIntermedio[ctx.statement()[x]].getCode()
+        nodoNuevo.addCode(acumuladoNuevo)
+        #print("ACUMULADO NUEVO ", acumuladoNuevo)
+        self.dictCodigoIntermedio[ctx] = nodoNuevo
         hijos_tipo = [self.tipoNodo[i] for i in ctx.children if isinstance(
             i, decafAlejandroV2Parser.StatementContext)]
         filtered = list(filter(lambda tipo: tipo != self.VOID, hijos_tipo))
@@ -659,6 +690,16 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             innerValue = f'END_IF_{self.contadorGTrue}'
         else:
             innerValue = f'{valor}:'
+
+        return innerValue
+
+    def generateLabelforArray(self, var, temp):
+        innerValue = ''
+        if len(var) > 0:
+            if(self.metodo_Actual == "GLOBAL"):
+                innerValue = f'G[{(temp)}]'
+            else:
+                innerValue = f'fp[{(temp)}]'
 
         return innerValue
 
@@ -990,151 +1031,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             sumaNode.addCode(codigoAunado)
             # agregamos el nodo a los nodos globales
             self.dictCodigoIntermedio[ctx] = sumaNode
-
-    """ def exitExpr(self, ctx: decafAlejandroV2Parser.ExprContext):
-        nodes_nonterminals = []
-        for child in ctx.children:
-            if not isinstance(child, TerminalNode):
-                nodes_nonterminals.append(child)
-
-        if len(nodes_nonterminals) == 1:
-            non_terminal = nodes_nonterminals.pop()
-            self.tipoNodo[ctx] = self.tipoNodo[non_terminal]
-            self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[non_terminal]
-            if(ctx.SUB() is not None):  # tenemos un sub antes del valor
-                print("DFDFS")
-                NodoE1 = self.dictCodigoIntermedio[ctx.getChild(1)]
-                # si es una suma y creamos un nodoo nuevo
-                menosNode = Nodo(self.contadorGlobalNodos)
-                self.contadorGlobalNodos += 1
-                # creamos nueva temporal y la agregamos,
-                #  por regla semántica E.dir = new Temp()
-                innerTemporal = self.generateTemporal()
-                menosNode.addAddress(innerTemporal)
-                # anidamos codigo por la regla semantica
-                # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
-                codigoAunado = '\n' + NodoE1.getCode() + (menosNode.getAddress() + " =  MENOS " +
-                                                          NodoE1.getAddress()) + '\n'
-                # agregamos el codigo al nodo de E
-                menosNode.addCode(codigoAunado)
-                # agregamos el nodo a los nodos globales
-                self.dictCodigoIntermedio[ctx] = menosNode
-
-        else:
-            tipo1 = self.tipoNodo[ctx.getChild(0)]
-            tipo2 = self.tipoNodo[ctx.getChild(2)]
-            if self.ERROR in [tipo1, tipo2]:
-                self.tipoNodo[ctx] = self.ERROR
-                return
-
-            result_type = self.ERROR
-            if ctx.eq_op() is not None:
-                if len(self.Intersection([tipo1, tipo2], [self.STRING, self.INT, self.BOOLEAN])) > 0 and tipo1 == tipo2:
-                    result_type = self.BOOLEAN
-                else:
-                    hasError = True
-                    line = ctx.getChild(0).start.line
-                    col = ctx.getChild(0).start.column
-                    error = self.errores.errrorText_EQ_OPS
-
-            if ctx.arith_op() is not None or ctx.rel_op() is not None:
-                # si es una operacion aritmética
-                NodoE1 = self.dictCodigoIntermedio[ctx.getChild(0)]
-                NodoE2 = self.dictCodigoIntermedio[ctx.getChild(2)]
-                if(ctx.arith_op().getText() == "+"):
-                    # si es una suma y creamos un nodoo nuevo
-                    sumaNode = Nodo(self.contadorGlobalNodos)
-                    self.contadorGlobalNodos += 1
-                    # creamos nueva temporal y la agregamos,
-                    #  por regla semántica E.dir = new Temp()
-                    innerTemporal = self.generateTemporal()
-                    sumaNode.addAddress(innerTemporal)
-                    # anidamos codigo por la regla semantica
-                    # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
-                    codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
-                                                                                 NodoE1.getAddress() + " + " + NodoE2.getAddress() + " ") + '\n'
-                    # agregamos el codigo al nodo de E
-                    sumaNode.addCode(codigoAunado)
-                    # agregamos el nodo a los nodos globales
-                    self.dictCodigoIntermedio[ctx] = sumaNode
-                elif(ctx.arith_op().getText() == "*"):
-                    # si es una suma y creamos un nodoo nuevo
-                    sumaNode = Nodo(self.contadorGlobalNodos)
-                    self.contadorGlobalNodos += 1
-                    # creamos nueva temporal y la agregamos,
-                    #  por regla semántica E.dir = new Temp()
-                    innerTemporal = self.generateTemporal()
-                    sumaNode.addAddress(innerTemporal)
-                    # anidamos codigo por la regla semantica
-                    # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
-                    codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
-                                                                                 NodoE1.getAddress() + " * " + NodoE2.getAddress() + " ") + '\n'
-                    # agregamos el codigo al nodo de E
-                    sumaNode.addCode(codigoAunado)
-                    # agregamos el nodo a los nodos globales
-                    self.dictCodigoIntermedio[ctx] = sumaNode
-                elif(ctx.arith_op().getText() == "-"):
-                    # si es una suma y creamos un nodoo nuevo
-                    sumaNode = Nodo(self.contadorGlobalNodos)
-                    self.contadorGlobalNodos += 1
-                    # creamos nueva temporal y la agregamos,
-                    #  por regla semántica E.dir = new Temp()
-                    innerTemporal = self.generateTemporal()
-                    sumaNode.addAddress(innerTemporal)
-                    # anidamos codigo por la regla semantica
-                    # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
-                    codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
-                                                                                 NodoE1.getAddress() + " - " + NodoE2.getAddress() + " ") + '\n'
-                    # agregamos el codigo al nodo de E
-                    sumaNode.addCode(codigoAunado)
-                    # agregamos el nodo a los nodos globales
-                    self.dictCodigoIntermedio[ctx] = sumaNode
-                elif(ctx.arith_op().getText() == "/"):
-                    # si es una suma y creamos un nodoo nuevo
-                    sumaNode = Nodo(self.contadorGlobalNodos)
-                    self.contadorGlobalNodos += 1
-                    # creamos nueva temporal y la agregamos,
-                    #  por regla semántica E.dir = new Temp()
-                    innerTemporal = self.generateTemporal()
-                    sumaNode.addAddress(innerTemporal)
-                    # anidamos codigo por la regla semantica
-                    # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
-                    codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
-                                                                                 NodoE1.getAddress() + " / " + NodoE2.getAddress() + " ") + '\n'
-                    # agregamos el codigo al nodo de E
-                    sumaNode.addCode(codigoAunado)
-                    # agregamos el nodo a los nodos globales
-                    self.dictCodigoIntermedio[ctx] = sumaNode
-                elif(ctx.arith_op().getText() == "%"):
-                    # si es una suma y creamos un nodoo nuevo
-                    sumaNode = Nodo(self.contadorGlobalNodos)
-                    self.contadorGlobalNodos += 1
-                    # creamos nueva temporal y la agregamos,
-                    #  por regla semántica E.dir = new Temp()
-                    innerTemporal = self.generateTemporal()
-                    sumaNode.addAddress(innerTemporal)
-                    # anidamos codigo por la regla semantica
-                    # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
-                    codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
-                                                                                 NodoE1.getAddress() + " % " + NodoE2.getAddress() + " ") + '\n'
-                    # agregamos el codigo al nodo de E
-                    sumaNode.addCode(codigoAunado)
-                    # agregamos el nodo a los nodos globales
-                    self.dictCodigoIntermedio[ctx] = sumaNode
-
-                if tipo1 == self.INT and tipo2 == self.INT:
-                    result_type = self.INT
-                    if ctx.rel_op() is not None:
-                        result_type = self.BOOLEAN
-            elif ctx.SUB() is not None:  # si tiene un negativo ANTES de la expresion
-                print("SSSS")
-            elif ctx.cond_op() is not None:
-                if tipo1 == self.BOOLEAN and tipo2 == self.BOOLEAN:
-                    result_type = self.BOOLEAN
-            else:
-                result_type = self.VOID
-
-            self.tipoNodo[ctx] = result_type """
 
     def CheckErrorInArrayId(self, ctx, tipo, tipo_var):
         id = ctx.getChild(0).getText()
