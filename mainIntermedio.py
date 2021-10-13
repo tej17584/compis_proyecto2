@@ -405,11 +405,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.tipoNodo[ctx] = self.VOID
         self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
             1)]
-        """ for child in ctx.children:
-            if not isinstance(child, TerminalNode):
-                if self.tipoNodo[child] == self.ERROR:
-                    self.tipoNodo[ctx] = self.ERROR
-                    break """
 
     def exitString_literal(self, ctx: decafAlejandroV2Parser.String_literalContext):
         self.tipoNodo[ctx] = self.STRING
@@ -430,18 +425,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
     def exitBool_literal(self, ctx: decafAlejandroV2Parser.Bool_literalContext):
         self.tipoNodo[ctx] = self.BOOLEAN
         # creamos un nuevo nodo
-        """ nodoS = Nodo(self.contadorGlobalNodos)
-        self.contadorGlobalNodos += 1 """
-        """ nodoS = NodoBooleano()
-        if ctx.getText() == "True":
-            labelTrue = self.generateLabelforIF("true")
-            nodoS.setTrue(labelTrue)
-            nodoS.setCode(f'GOTO {nodoS.getTrue()} ')
-        elif ctx.getText() == "False":
-            labelFalse = self.generateLabelforIF("false")
-            nodoS.setFalse(labelFalse)
-            nodoS.setCode(f'GOTO {nodoS.getFalse()} ')
-        self.dictCodigoIntermedio[ctx] = nodoS """
         nodoS = Nodo(self.contadorGlobalNodos)
         nodoS.addAddress(ctx.getText())
         self.contadorGlobalNodos += 1
@@ -543,12 +526,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
                     self.scope_Actual.AddEntryToTable(
                         tipo, id, size, offset, False)
-                else:
-                    self.tipoNodo[child] = self.ERROR
-                    line = child.var_id().start.line
-                    col = child.var_id().start.column
-                    self.errores.AddEntryToTable(
-                        line, col, self.errores.errrorText_VARDUPLICADA)
 
     def exitField_declr(self, ctx: decafAlejandroV2Parser.Field_declrContext):
         self.tipoNodo[ctx] = self.VOID
@@ -573,11 +550,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             # ALEJANDRO CHANGES ---
             self.popMethodActual()
 
-        """ for child in ctx.children:
-            if not isinstance(child, TerminalNode):
-                if self.tipoNodo[child] == self.ERROR:
-                    self.tipoNodo[ctx] = self.ERROR
-                    return """
         longitud = len(ctx.statement())
         acumuladoNuevo = ""
         nodoNuevo = Nodo(self.contadorGlobalNodos)
@@ -589,21 +561,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         nodoNuevo.addCode(acumuladoNuevo)
         #print("ACUMULADO NUEVO ", acumuladoNuevo)
         self.dictCodigoIntermedio[ctx] = nodoNuevo
-        hijos_tipo = [self.tipoNodo[i] for i in ctx.children if isinstance(
-            i, decafAlejandroV2Parser.StatementContext)]
-        filtered = list(filter(lambda tipo: tipo != self.VOID, hijos_tipo))
-        if len(filtered) == 0:
-            self.tipoNodo[ctx] = self.VOID
-            return
-
-        if len(filtered) == 1:
-            self.tipoNodo[ctx] = filtered.pop()
-            return
-
-        if self.all_equal(filtered):
-            self.tipoNodo[ctx] = filtered.pop()
-        else:
-            self.tipoNodo[ctx] = self.ERROR
 
     def visitNodes(self, params):
         innerArray = []
@@ -708,16 +665,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
     def exitStatement_if(self, ctx: decafAlejandroV2Parser.Statement_ifContext):
 
-        hijos_tipo = [i for i in ctx.children if isinstance(
-            i, decafAlejandroV2Parser.BlockContext)]
-        tipo_return = self.GetMethodType(ctx)
-        if len(hijos_tipo) == 1:
-            hijo_1 = hijos_tipo.pop()
-            if tipo_return == self.tipoNodo[hijo_1]:
-                self.tipoNodo[ctx] = self.tipoNodo[hijo_1]
-        else:
-            if self.tipoNodo[hijos_tipo[0]] == self.tipoNodo[hijos_tipo[1]]:
-                self.tipoNodo[ctx] = self.tipoNodo[hijos_tipo.pop()]
         # instanciamos nodo nuevo
         if len(ctx.block()) == 1:
             nodoState = NodoBooleano()
@@ -792,14 +739,10 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         nodoReturn.addCode(codigoAunado)
         self.arrayProduccionesTerminadas.append(codigoAunado)
 
-        self.tipoNodo[ctx] = self.tipoNodo[ctx.expr()]
+        #self.tipoNodo[ctx] = self.tipoNodo[ctx.expr()]
         self.dictCodigoIntermedio[ctx] = nodoReturn
 
     def exitStatement_methodcall(self, ctx: decafAlejandroV2Parser.Statement_methodcallContext):
-        error = self.ChildrenHasError(ctx)
-        if error:
-            self.tipoNodo[ctx] = self.ERROR
-            return
 
         self.tipoNodo[ctx] = self.tipoNodo[ctx.method_call()]
 
@@ -1074,13 +1017,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
                 self.tipoNodo[ctx] = self.ERROR
         elif ctx.var_id() is not None:
             # tipo_var = self.findVar(ctx.var_id().getText())
-            if tipo_var == 0:
-                line = ctx.start.line
-                col = ctx.start.column
-                self.errores.AddEntryToTable(
-                    line, col, f'Variable "{ctx.var_id().getText()}" no ha sido declarada previamente.')
-                self.tipoNodo[ctx] = self.ERROR
-                return
 
             if 'array' in tipo and tipo_var['Tipo'] == self.INT:
                 if tipo.split('array')[-1] in [self.INT, self.STRING, self.BOOLEAN]:
@@ -1088,24 +1024,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
                         'array')[-1]]
                 else:
                     self.tipoNodo[ctx] = self.VOID
-            elif 'array' in tipo and tipo_var['Tipo'] != self.INT:
-                line = ctx.start.line
-                col = ctx.start.column
-                self.errores.AddEntryToTable(
-                    line, col, f'Variable "{ctx.var_id().getText()}" debe ser INT para intetar acceder a un ARRAY.')
-                self.tipoNodo[ctx] = self.ERROR
-            elif 'array' not in tipo:
-                line = ctx.start.line
-                col = ctx.start.column
-                self.errores.AddEntryToTable(
-                    line, col, f'Variable "{id}" debe ser del tipo ARRAY.')
-                self.tipoNodo[ctx] = self.ERROR
-            elif tipo_var['Tipo'] != self.INT:
-                line = ctx.start.line
-                col = ctx.start.column
-                self.errores.AddEntryToTable(
-                    line, col, f'Variable "{ctx.var_id().getText()}" debe ser INT para intetar acceder a un ARRAY.')
-                self.tipoNodo[ctx] = self.ERROR
 
     def IterateChildren(self, location, parent_type, description):
         if location.var_id() is not None:
@@ -1291,10 +1209,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             return result_type
 
     def enterLocation(self, ctx: decafAlejandroV2Parser.LocationContext):
-        """ parent = ctx.parentCtx
-        if parent in self.tipoNodo.keys():
-            if self.tipoNodo[parent] == self.ERROR:
-                self.tipoNodo[ctx] = self.ERROR """
 
         if ctx in self.tipoNodo.keys():
             return
