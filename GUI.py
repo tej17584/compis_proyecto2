@@ -16,6 +16,7 @@ import sys
 
 from mainSemantic import Compilar
 from mainIntermedio import CompilarIntermedio
+import pickle
 
 
 # Creating main window class
@@ -339,22 +340,17 @@ class MainWindow(QMainWindow):
 
         if self.editor.toPlainText() != '':
             programaCompilado = CompilarIntermedio(input)
-
-            if programaCompilado.HasLexicalError():
-                print('No se ha generado nada de codigo intermedio V1.\n ',
-                      programaCompilado.errorFromAntlr.lexicalErrors)
-                errores = '\n'.join(
-                    programaCompilado.errorFromAntlr.lexicalErrors)
-                self.errorForlog2.setText(errores)
-
+            # we drop the values for the piccke
+            infile = open("codigoIntermedioFinal", 'rb')
+            arrayIntermedio = pickle.load(infile)
+            if(arrayIntermedio != None):
+                acumulador=""
+                for x in arrayIntermedio:
+                    acumulador= acumulador + x + '\n'
+                self.errorForlog2.setText(acumulador)
             else:
-                if programaCompilado.printer.tipoNodo[programaCompilado.printer.root] == 'error' or len(programaCompilado.printer.errores.errores) > 0:
-                    errores = '\n'.join(
-                        programaCompilado.printer.errores.getAllErrors())
-                    self.errorForlog2.setText(errores)
-                else:
-                    self.errorForlog2.setText(
-                        'No se ha generado nada de codigo intermedio V2')
+                self.errorForlog2.setText(
+                    'No se ha generado nada de codigo intermedio V2')
             self.tabs.setCurrentIndex(2)
     # save to path method
 

@@ -26,6 +26,7 @@ from symbolTable import *
 # we import Node
 from NodoCodigo import *
 from nodoBoolean import *
+import pickle
 
 
 class MyErrorListener(ErrorListener):
@@ -1313,6 +1314,10 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         # mostramos el codigo terminado
         for x in self.arrayProduccionesTerminadas:
             print(x)
+        filename = 'codigoIntermedioFinal'
+        outfile = open(filename, 'wb')
+        pickle.dump(self.arrayProduccionesTerminadas, outfile)
+        outfile.close()
 
         print('----------> FIN PROGRAMA <--------------')
         """ self.scope_Actual.valueToTable()
