@@ -568,11 +568,23 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             innerNode = Nodo(self.contadorGlobalNodos)
             self.contadorGlobalNodos += 1
             innerNode.addCode('')
-            if self.findVar(param.getText()) == 0:
-                innerNode.addAddress(param.getText())
-            else:
-                variable = self.findVar(param.getText())
-                innerNode.addAddress(self.generateTopeGet(variable["Id"]))
+            if isinstance(param, decafAlejandroV2Parser.Expr_PrecedenciaMenorContext):
+                print("OPERACION")
+                hijo = self.dictCodigoIntermedio[param]
+                innerNode.addCode(hijo.getCode())
+                """ if(len(hijo.getCode().split("\n")) >= 1):
+                    valueTemporal = hijo.getCode().split(
+                    "\n")
+                if(len(hijo.getCode().split("=")) != 0):
+                    valueTemporal = hijo.getCode().split("=")[0].strip() """
+                innerNode.addAddress(hijo.getAddress())
+            else :
+                print("LOCATION VAR NORMAL")
+                if self.findVar(param.getText()) == 0:
+                    innerNode.addAddress(param.getText())
+                else:
+                    variable = self.findVar(param.getText())
+                    innerNode.addAddress(self.generateTopeGet(variable["Id"]))
             innerArray.append(innerNode)
 
         return innerArray
@@ -937,7 +949,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             sumaNode.addAddress(innerTemporal)
             # anidamos codigo por la regla semantica
             # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
-            codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
+            codigoAunado = ' ' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
                                                                          NodoE1.getAddress() + " * " + NodoE2.getAddress() + " ") + '\n'
             # agregamos el codigo al nodo de E
             sumaNode.addCode(codigoAunado)
@@ -954,7 +966,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             sumaNode.addAddress(innerTemporal)
             # anidamos codigo por la regla semantica
             # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
-            codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
+            codigoAunado = ' ' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
                                                                          NodoE1.getAddress() + " / " + NodoE2.getAddress() + " ") + '\n'
             # agregamos el codigo al nodo de E
             sumaNode.addCode(codigoAunado)
@@ -970,7 +982,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             sumaNode.addAddress(innerTemporal)
             # anidamos codigo por la regla semantica
             # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
-            codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
+            codigoAunado = ' ' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
                                                                          NodoE1.getAddress() + " % " + NodoE2.getAddress() + " ") + '\n'
             # agregamos el codigo al nodo de E
             sumaNode.addCode(codigoAunado)
@@ -991,7 +1003,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             sumaNode.addAddress(innerTemporal)
             # anidamos codigo por la regla semantica
             # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
-            codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
+            codigoAunado = ' ' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
                                                                          NodoE1.getAddress() + " + " + NodoE2.getAddress() + " ") + '\n'
             # agregamos el codigo al nodo de E
             sumaNode.addCode(codigoAunado)
@@ -1008,7 +1020,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             sumaNode.addAddress(innerTemporal)
             # anidamos codigo por la regla semantica
             # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
-            codigoAunado = '\n' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
+            codigoAunado = ' ' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
                                                                          NodoE1.getAddress() + " - " + NodoE2.getAddress() + " ") + '\n'
             # agregamos el codigo al nodo de E
             sumaNode.addCode(codigoAunado)
