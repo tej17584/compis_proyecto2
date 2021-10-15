@@ -49,9 +49,9 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.windowResults, "Análisis semántico")
         self.tabs.addTab(self.windowResultsIntermedio, "Código intermedio")
 
-        self.errorForlog2 = QLabel()
+        self.errorForlog2 = QPlainTextEdit()
         self.errorForlog2.setFont(fixedfont)
-        self.errorForlog2.setText("")
+        
         self.windowResultsIntermedio.layout = QVBoxLayout()
         self.windowResultsIntermedio.layout.addWidget(self.errorForlog2)
         self.windowResultsIntermedio.setLayout(
@@ -347,9 +347,9 @@ class MainWindow(QMainWindow):
                 acumulador=""
                 for x in arrayIntermedio:
                     acumulador= acumulador + x + '\n'
-                self.errorForlog2.setText(acumulador)
+                self.errorForlog2.setPlainText(acumulador)
             else:
-                self.errorForlog2.setText(
+                self.errorForlog2.setPlainText(
                     'No se ha generado nada de codigo intermedio V2')
             self.tabs.setCurrentIndex(2)
     # save to path method
