@@ -578,16 +578,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
                 if(len(hijo.getCode().split("=")) != 0):
                     valueTemporal = hijo.getCode().split("=")[0].strip() """
                 innerNode.addAddress(hijo.getAddress())
-            if isinstance(param, decafAlejandroV2Parser.Expr_locationContext):
-                print("ES LOCATION")
-                hijo = self.dictCodigoIntermedio[param]
-                innerNode.addCode(hijo.getCode())
-                """ if(len(hijo.getCode().split("\n")) >= 1):
-                    valueTemporal = hijo.getCode().split(
-                    "\n")
-                if(len(hijo.getCode().split("=")) != 0):
-                    valueTemporal = hijo.getCode().split("=")[0].strip() """
-                innerNode.addAddress(hijo.getAddress())
             else:
                 print("LOCATION VAR NORMAL")
                 if self.findVar(param.getText()) == 0:
