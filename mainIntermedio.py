@@ -444,8 +444,8 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
     def exitArray_id(self, ctx: decafAlejandroV2Parser.Array_idContext):
         parent = ctx.parentCtx
-        if parent in self.tipoNodo.keys() or ctx in self.tipoNodo.keys():
-            return
+        """ if parent in self.tipoNodo.keys() or ctx in self.tipoNodo.keys():
+            return """
         id = ctx.getChild(0).getText()
         variable = self.findVar(id)
         tipo = variable['Tipo']
@@ -578,7 +578,17 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
                 if(len(hijo.getCode().split("=")) != 0):
                     valueTemporal = hijo.getCode().split("=")[0].strip() """
                 innerNode.addAddress(hijo.getAddress())
-            else :
+            if isinstance(param, decafAlejandroV2Parser.Expr_locationContext):
+                print("ES LOCATION")
+                hijo = self.dictCodigoIntermedio[param]
+                innerNode.addCode(hijo.getCode())
+                """ if(len(hijo.getCode().split("\n")) >= 1):
+                    valueTemporal = hijo.getCode().split(
+                    "\n")
+                if(len(hijo.getCode().split("=")) != 0):
+                    valueTemporal = hijo.getCode().split("=")[0].strip() """
+                innerNode.addAddress(hijo.getAddress())
+            else:
                 print("LOCATION VAR NORMAL")
                 if self.findVar(param.getText()) == 0:
                     innerNode.addAddress(param.getText())
@@ -676,7 +686,8 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         return innerValue
 
     def exitStatement_if(self, ctx: decafAlejandroV2Parser.Statement_ifContext):
-
+        parent = ctx.parentCtx
+        abuelito = parent.parentCtx
         # instanciamos nodo nuevo
         if len(ctx.block()) == 1:
             nodoState = NodoBooleano()
@@ -722,7 +733,8 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
         nodoState.setCode(codigoAunado)
         self.dictCodigoIntermedio[ctx] = nodoState
-        self.arrayProduccionesTerminadas.append(codigoAunado)
+        if not isinstance(abuelito, decafAlejandroV2Parser.Statement_whileContext):
+            self.arrayProduccionesTerminadas.append(codigoAunado)
 
     def exitStatement_while(self, ctx: decafAlejandroV2Parser.Statement_whileContext):
         """ hijos_tipo = [self.tipoNodo[i] for i in ctx.children if isinstance(
@@ -739,9 +751,17 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         lblInicioWhile = self.generateLabelforWhile('startwhile')
         nodoB.setTrue(self.generateLabelforWhile('true'))
         nodoB.setFalse(self.generateLabelforWhile('endwhile'))
-
+        valueTemporal = ""
+        if(len(nodoB.getCode().split("\n")) >= 2):
+            valueTemporal = nodoB.getCode().split(
+                "\n")[2].split("=")[0].strip()
+        else:
+            if(len(nodoB.getCode().split("=")) != 0):
+                valueTemporal = nodoB.getCode().split("=")[0].strip()
+            else:
+                valueTemporal = f't{self.contadorTemporales-1}'
         codigoAunado = ' ' + lblInicioWhile + '\n  ' + nodoB.getCode() + '\n' +  \
-            ('  IF ' + f't{self.contadorTemporales-1} > 0 ' + f'GOTO {nodoB.getTrue()}') + '\n ' + \
+            ('  IF ' + f'{valueTemporal} > 0 ' + f'GOTO {nodoB.getTrue()}') + '\n ' + \
             (f' GOTO {nodoB.getFalse()}') + '\n  ' + self.generateLabelforWhile(nodoB.getTrue()) + '\n ' + '  ' + nodoS1.getCode() + '\n  ' +\
             (f' GOTO {lblInicioWhile}') + '\n ' + \
             self.generateLabelforWhile(nodoB.getFalse())
@@ -767,9 +787,11 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.dictCodigoIntermedio[ctx] = nodoReturn
 
     def exitStatement_methodcall(self, ctx: decafAlejandroV2Parser.Statement_methodcallContext):
+        parent = ctx.parentCtx
+        abuelito = parent.parentCtx
         hijo = self.dictCodigoIntermedio[ctx.getChild(
             0)]
-        if(hijo.getCode()!=""):
+        if not isinstance(abuelito, decafAlejandroV2Parser.Statement_ifContext) and not isinstance(abuelito, decafAlejandroV2Parser.Statement_whileContext):
             self.arrayProduccionesTerminadas.append(hijo.getCode())
         self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
             0)]
@@ -819,7 +841,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
         # agregamos el dict de nodos globales
         self.dictCodigoIntermedio[ctx] = nodoS
-        if not isinstance(abuelito, decafAlejandroV2Parser.Statement_ifContext):
+        if not isinstance(abuelito, decafAlejandroV2Parser.Statement_ifContext) and not isinstance(abuelito, decafAlejandroV2Parser.Statement_whileContext):
             self.arrayProduccionesTerminadas.append(codigoAunado)
         # print(nodo.getNode())
         # # TODO verificar cuando hay que hacer append y cuando no
@@ -898,7 +920,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             nodoEqual = NodoBooleano()
             nodoConData = self.dictCodigoIntermedio[ctx.getChild(0)]
             nodoConData2 = self.dictCodigoIntermedio[ctx.getChild(2)]
-            codigoAunado = nuevaTemporal + " = " + nodoConData.getAddress() + " " + ctx.eq_op().getText() + " " + \
+            codigoAunado = nodoConData.getCode() + " " + nodoConData2.getCode() + " " + nuevaTemporal + " = " + nodoConData.getAddress() + " " + ctx.eq_op().getText() + " " + \
                 nodoConData2.getAddress()
             nodoEqual.setCode(codigoAunado)
             self.dictCodigoIntermedio[ctx] = nodoEqual
@@ -908,7 +930,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             nodoRel = NodoBooleano()
             nodoConData = self.dictCodigoIntermedio[ctx.getChild(0)]
             nodoConData2 = self.dictCodigoIntermedio[ctx.getChild(2)]
-            codigoAunado = nuevaTemporal + " = " + nodoConData.getAddress() + " " + ctx.rel_op().getText() + " " + \
+            codigoAunado = nodoConData.getCode() + " " + nodoConData2.getCode() + " " + nuevaTemporal + " = " + nodoConData.getAddress() + " " + ctx.rel_op().getText() + " " + \
                 nodoConData2.getAddress()
             nodoRel.setCode(codigoAunado)
             self.dictCodigoIntermedio[ctx] = nodoRel
@@ -916,16 +938,37 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             # si es una operacion de condOP
             nuevaTemporal = self.generateTemporal()
             nodoCond = NodoBooleano()
+            valueTemporal1 = ""
+            valueTemporal2 = ""
             nodoConData = self.dictCodigoIntermedio[ctx.getChild(0)]
             nodoConData2 = self.dictCodigoIntermedio[ctx.getChild(2)]
             if(ctx.cond_op().getText() == "&&" or ctx.cond_op().getText() == "||"):  # si es un AND
+                if(len(nodoConData.getCode().split("\n")) >= 2):
+                    valueTemporal1 = nodoConData.getCode().split(
+                        "\n")[2].split("=")[0].strip()
+                else:
+                    if(len(nodoConData.getCode().split("=")) != 0):
+                        valueTemporal1 = nodoConData.getCode().split("=")[
+                            0].strip()
+                    else:
+                        valueTemporal1 = nodoConData.getCode().split("=")[0]
+
+                if(len(nodoConData2.getCode().split("\n")) >= 2):
+                    valueTemporal2 = nodoConData2.getCode().split(
+                        "\n")[2].split("=")[0].strip()
+                else:
+                    if(len(nodoConData2.getCode().split("=")) != 0):
+                        valueTemporal2 = nodoConData2.getCode().split("=")[
+                            0].strip()
+                    else:
+                        valueTemporal2 = nodoConData2.getCode().split("=")[0]
                 codigoAunado = nodoConData.getCode() + '\n' + nodoConData2.getCode() + '\n' + nuevaTemporal + " = " + \
-                    f'{nodoConData.getCode().split("=")[0]}' + " " + \
+                    f'{valueTemporal1}' + " " + \
                     ctx.cond_op().getText() + \
-                    f' {nodoConData2.getCode().split("=")[0] }'
+                    f' {valueTemporal2}'
                 print("S")
             else:
-                codigoAunado = nuevaTemporal + " = " + nodoConData.getAddress() + " " + ctx.cond_op().getText() + " " + \
+                codigoAunado = nodoConData.getCode() + " " + nodoConData2.getCode() + " " + nuevaTemporal + " = " + nodoConData.getAddress() + " " + ctx.cond_op().getText() + " " + \
                     nodoConData2.getAddress()
             nodoCond.setCode(codigoAunado)
             self.dictCodigoIntermedio[ctx] = nodoCond
@@ -950,7 +993,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             # anidamos codigo por la regla semantica
             # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
             codigoAunado = ' ' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
-                                                                         NodoE1.getAddress() + " * " + NodoE2.getAddress() + " ") + '\n'
+                                                                        NodoE1.getAddress() + " * " + NodoE2.getAddress() + " ") + '\n'
             # agregamos el codigo al nodo de E
             sumaNode.addCode(codigoAunado)
             # agregamos el nodo a los nodos globales
@@ -967,7 +1010,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             # anidamos codigo por la regla semantica
             # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
             codigoAunado = ' ' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
-                                                                         NodoE1.getAddress() + " / " + NodoE2.getAddress() + " ") + '\n'
+                                                                        NodoE1.getAddress() + " / " + NodoE2.getAddress() + " ") + '\n'
             # agregamos el codigo al nodo de E
             sumaNode.addCode(codigoAunado)
             # agregamos el nodo a los nodos globales
@@ -983,7 +1026,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             # anidamos codigo por la regla semantica
             # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
             codigoAunado = ' ' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
-                                                                         NodoE1.getAddress() + " % " + NodoE2.getAddress() + " ") + '\n'
+                                                                        NodoE1.getAddress() + " % " + NodoE2.getAddress() + " ") + '\n'
             # agregamos el codigo al nodo de E
             sumaNode.addCode(codigoAunado)
             # agregamos el nodo a los nodos globales
@@ -1004,7 +1047,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             # anidamos codigo por la regla semantica
             # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
             codigoAunado = ' ' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
-                                                                         NodoE1.getAddress() + " + " + NodoE2.getAddress() + " ") + '\n'
+                                                                        NodoE1.getAddress() + " + " + NodoE2.getAddress() + " ") + '\n'
             # agregamos el codigo al nodo de E
             sumaNode.addCode(codigoAunado)
             # agregamos el nodo a los nodos globales
@@ -1021,7 +1064,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             # anidamos codigo por la regla semantica
             # E.codigo = E1.codigo || gen(E.dir '=' 'menos' E1.dir)
             codigoAunado = ' ' + NodoE1.getCode() + NodoE2.getCode() + (sumaNode.getAddress() + " = " +
-                                                                         NodoE1.getAddress() + " - " + NodoE2.getAddress() + " ") + '\n'
+                                                                        NodoE1.getAddress() + " - " + NodoE2.getAddress() + " ") + '\n'
             # agregamos el codigo al nodo de E
             sumaNode.addCode(codigoAunado)
             # agregamos el nodo a los nodos globales
