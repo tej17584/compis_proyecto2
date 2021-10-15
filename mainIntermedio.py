@@ -717,6 +717,8 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             i, decafAlejandroV2Parser.BlockContext)]
         if len(hijos_tipo) == 1:
             self.tipoNodo[ctx] = hijos_tipo.pop() """
+        parent = ctx.parentCtx
+        abuelito = parent.parentCtx
         # codigo para nodo Booleano
         nodoWhile = NodoBooleano()
         nodoB = self.dictCodigoIntermedio[ctx.expr()]
@@ -735,17 +737,20 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         nodoWhile.setCode(codigoAunado)
 
         self.dictCodigoIntermedio[ctx] = nodoWhile
-        self.arrayProduccionesTerminadas.append(codigoAunado)
+        if not isinstance(abuelito, decafAlejandroV2Parser.Statement_ifContext):
+            self.arrayProduccionesTerminadas.append(codigoAunado)
 
     def exitStatement_return(self, ctx: decafAlejandroV2Parser.Statement_returnContext):
         # si es una suma y creamos un nodoo nuevo
+        parent = ctx.parentCtx
+        abuelito = parent.parentCtx
         nodoReturn = Nodo(self.contadorGlobalNodos)
         self.contadorGlobalNodos += 1
         nodoExpr = self.dictCodigoIntermedio[ctx.expr()]
         codigoAunado = nodoExpr.getCode() + ('RETURN ' + nodoExpr.getAddress()) + '\n'
         nodoReturn.addCode(codigoAunado)
-        self.arrayProduccionesTerminadas.append(codigoAunado)
-
+        if not isinstance(abuelito, decafAlejandroV2Parser.Statement_ifContext):
+            self.arrayProduccionesTerminadas.append(codigoAunado)
         #self.tipoNodo[ctx] = self.tipoNodo[ctx.expr()]
         self.dictCodigoIntermedio[ctx] = nodoReturn
 
