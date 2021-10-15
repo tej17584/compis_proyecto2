@@ -377,12 +377,12 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         if parent in self.tipoNodo.keys():
             self.tipoNodo[ctx] = self.tipoNodo[parent]
             # we double the instruction -ALEJANDRO CHANGES
-            self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[parent]
+            #self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[parent]
 
     def exitVar_id(self, ctx: decafAlejandroV2Parser.Var_idContext):
-        parent = ctx.parentCtx
+        """ parent = ctx.parentCtx
         if parent in self.tipoNodo.keys() or ctx in self.tipoNodo.keys():
-            return
+            return """
         id = ctx.getText()
         variable = self.findVar(id)
         # creamos el nodo
@@ -397,10 +397,10 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.dictCodigoIntermedio[ctx] = nodoInner
 
         # ! quizas podamos borrar esto
-        if variable['Tipo'] in [self.INT, self.STRING, self.BOOLEAN]:
+        """ if variable['Tipo'] in [self.INT, self.STRING, self.BOOLEAN]:
             self.tipoNodo[ctx] = self.data_type[variable['Tipo']]
         else:
-            self.tipoNodo[ctx] = self.VOID
+            self.tipoNodo[ctx] = self.VOID """
 
     def exitVardeclr(self, ctx: decafAlejandroV2Parser.VardeclrContext):
         self.tipoNodo[ctx] = self.VOID
@@ -500,11 +500,11 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.tipoNodo[ctx] = self.VOID
 
     def exitField_var(self, ctx: decafAlejandroV2Parser.Field_varContext):
-        if ctx not in self.tipoNodo.keys():
+        """ if ctx not in self.tipoNodo.keys():
             if ctx.var_id() is not None:
                 self.tipoNodo[ctx] = self.tipoNodo[ctx.getChild(0)]
             elif ctx.array_id() is not None:
-                self.tipoNodo[ctx] = self.tipoNodo[ctx.getChild(0)]
+                self.tipoNodo[ctx] = self.tipoNodo[ctx.getChild(0)] """
 
         if ctx not in self.dictCodigoIntermedio.keys():
             if ctx.var_id() is not None:
@@ -581,17 +581,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
     def exitMethod_call(self, ctx: decafAlejandroV2Parser.Method_callContext):
         name = ctx.method_name().getText()
         parameters = []
-
-        for child in ctx.children:
-            if isinstance(child, decafAlejandroV2Parser.ExprContext):
-                parameters.append(child)
-
-        method_info = self.tabla_metodos.getSymbolFromTable(name)
-        if len(parameters) == 0:
-            self.tipoNodo[ctx] = method_info['Tipo']
-            return
-
-        self.tipoNodo[ctx] = method_info['Tipo']
         nombre = name
         # si es una suma y creamos un nodoo nuevo
         nodoLlamada = Nodo(self.contadorGlobalNodos)
@@ -607,6 +596,17 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         nodoLlamada.addCode(codigo)
         nodoLlamada.addAddress("R")
         self.dictCodigoIntermedio[ctx] = nodoLlamada
+
+        for child in ctx.children:
+            if isinstance(child, decafAlejandroV2Parser.ExprContext):
+                parameters.append(child)
+
+        method_info = self.tabla_metodos.getSymbolFromTable(name)
+        if len(parameters) == 0:
+            self.tipoNodo[ctx] = method_info['Tipo']
+            return
+
+        self.tipoNodo[ctx] = method_info['Tipo']
 
     def GetMethodType(self, ctx):
         nodo = ctx.parentCtx
@@ -707,10 +707,10 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.arrayProduccionesTerminadas.append(codigoAunado)
 
     def exitStatement_while(self, ctx: decafAlejandroV2Parser.Statement_whileContext):
-        hijos_tipo = [self.tipoNodo[i] for i in ctx.children if isinstance(
+        """ hijos_tipo = [self.tipoNodo[i] for i in ctx.children if isinstance(
             i, decafAlejandroV2Parser.BlockContext)]
         if len(hijos_tipo) == 1:
-            self.tipoNodo[ctx] = hijos_tipo.pop()
+            self.tipoNodo[ctx] = hijos_tipo.pop() """
         # codigo para nodo Booleano
         nodoWhile = NodoBooleano()
         nodoB = self.dictCodigoIntermedio[ctx.expr()]
@@ -1287,8 +1287,8 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         if(ctx not in self.dictCodigoIntermedio.keys()):
             self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
                 0)]
-        if ctx not in self.tipoNodo.keys():
-            self.tipoNodo[ctx] = self.tipoNodo[ctx.getChild(0)]
+        """ if ctx not in self.tipoNodo.keys():
+            self.tipoNodo[ctx] = self.tipoNodo[ctx.getChild(0)] """
 
     def exitDeclaration(self, ctx: decafAlejandroV2Parser.DeclarationContext):
         self.tipoNodo[ctx] = self.tipoNodo[ctx.getChild(0)]
