@@ -568,7 +568,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             innerNode = Nodo(self.contadorGlobalNodos)
             self.contadorGlobalNodos += 1
             innerNode.addCode('')
-            if isinstance(param, decafAlejandroV2Parser.Expr_PrecedenciaMenorContext):
+            if isinstance(param, decafAlejandroV2Parser.Expr_PrecedenciaMenorContext) or isinstance(param, decafAlejandroV2Parser.Expr_PrecedenciaMaxContext):
                 print("OPERACION")
                 hijo = self.dictCodigoIntermedio[param]
                 innerNode.addCode(hijo.getCode())
