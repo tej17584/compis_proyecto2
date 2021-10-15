@@ -9,46 +9,10 @@ class Program {
 		}
 	}
 
-	int OutputInt(int n)
-	{
-		int z;
-		return z;
-	}
-
-	int InputInt(void)
-	{return 0;}
-
-	int ReturnNumber(void)
-	{
-		int a;
-		return a;
-	}
-
-
 	void main(void)
 	{
-		int y[10];
-		int i;
-		int j;
-		int k;
-
-		i = 0;
-		j = 0;
-
-		while(i<=10)
-		{
-			y[i] = InputInt();
-			if(y[j]==5)
-			{
-				y[j]=2;
-				k=factorial(ReturnNumber());
-				k = OutputInt(k);
-			}
-
-			y[j]=factorial(y[j]);
-			k = OutputInt(y[j]);
-			i = i+ 1;
-		}
+		int y;
+		y=factorial(33);
 	}
 
 

@@ -545,7 +545,6 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
     def exitBlock(self, ctx: decafAlejandroV2Parser.BlockContext):
         parent = ctx.parentCtx
-
         if not isinstance(parent, decafAlejandroV2Parser.Method_declrContext):
             self.popScope()
             # ALEJANDRO CHANGES ---
@@ -692,12 +691,19 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             nodoB = self.dictCodigoIntermedio[ctx.expr()]
             S1 = self.dictCodigoIntermedio[ctx.block()[0]]
             S2 = self.dictCodigoIntermedio[ctx.block()[1]]
-
+            if(len(nodoB.getCode().split("\n")) >= 2):
+                valueTemporal = nodoB.getCode().split(
+                    "\n")[2].split("=")[0].strip()
+            else:
+                if(len(nodoB.getCode().split("=")) != 0):
+                    valueTemporal = nodoB.getCode().split("=")[0].strip()
+                else:
+                    valueTemporal = f't{self.contadorTemporales-1}'
             endIf = self.generateLabelforIF('endIf')
             nodoB.setTrue(self.generateLabelforIF('true'))
             nodoB.setFalse(self.generateLabelforIF('false'))
 
-            codigoAunado = nodoB.getCode() + '\n' + ('IF ' + f't{self.contadorTemporales-1} > 0 GOTO {nodoB.getTrue()} \n') + \
+            codigoAunado = nodoB.getCode() + '\n' + ('IF ' + f'{valueTemporal} > 0 GOTO {nodoB.getTrue()} \n') + \
                 (f'GOTO {nodoB.getFalse()} \n') + self.generateLabelforIF(nodoB.getTrue()) + '\n '+" " + S1.getCode() + '\n ' + \
                 (f' GOTO {endIf}') + '\n' + self.generateLabelforIF(nodoB.getFalse()
                                                                     ) + '\n ' + " " + S2.getCode() + '\n' + self.generateLabelforIF(endIf) + '\n '
@@ -744,6 +750,12 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.dictCodigoIntermedio[ctx] = nodoReturn
 
     def exitStatement_methodcall(self, ctx: decafAlejandroV2Parser.Statement_methodcallContext):
+        hijo = self.dictCodigoIntermedio[ctx.getChild(
+            0)]
+        if(hijo.getCode()!=""):
+            self.arrayProduccionesTerminadas.append(hijo.getCode())
+        self.dictCodigoIntermedio[ctx] = self.dictCodigoIntermedio[ctx.getChild(
+            0)]
 
         self.tipoNodo[ctx] = self.tipoNodo[ctx.method_call()]
 
