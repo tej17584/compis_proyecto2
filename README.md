@@ -1,13 +1,13 @@
 <h1 align="center">
 <br>
-  <img src="https://images-na.ssl-images-amazon.com/images/I/51FWXX9KWVL._AC_UL600_SR600,600_.jpg" alt="UkronTadd" width="664"> 
+  <img src="https://images-na.ssl-images-amazon.com/images/I/51FWXX9KWVL._AC_UL600_SR600,600_.jpg" alt="UkronTadd" width="664">
 <br>
 <br>
 Proyecto 2: Generación de código intermedio
 </h1>
-    
+
 <p align="center">
-  
+
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/static/v1?label=License&message=NoLicense&color=<COLOR>" alt="No license">
   </a>
@@ -22,11 +22,11 @@ Proyecto 2: Generación de código intermedio
 
 # Acerca de...
 
-Este proyecto es el primero de tres de construccion de un compilador. Esa fase es la análisis semántico. Significa, que se construye un arbol con ANTLR 4 y luego vamos analizando recorriendo el arbol y viendo que cumpla con las reglas gramaticales.
+Este proyecto es el segundo de tres de construccion de un compilador. Esta fase es la generación de código intermedio. El código intermedio es una fase intermedia entre el analisis semántico y el codigo a nivel de assembler, de esta forma, logramos hacer esta transición mas suave al tener algo más sencillo de traducir a lenguaje de máquina.
 Algunos puntos vistos en este proyecto
-- Lectura de archivos txt o .decaf
-- Graficado de arboles sintácticos de ANTLR para mejor visualización
-- Revisión semántica del código
+- Traducción a código intermedio de expresiones
+- Traducción a código intermedio de IF y While
+- Traducción a código intermedio de Arrays, llamadas a métodos, parámetros, y operaciones.
 
 # Descripción de herramientas  y archivos archivos
 
@@ -36,7 +36,7 @@ Algunos puntos vistos en este proyecto
 - Compiladores principios, técnicas y herramientas, 2da Edición - Alfred V. Aho
 - VS Code
 - Windows Terminal
-- A lot of Coffe (more Coffe than last time) (**enought coffe for a life V3**)
+- A lot of Coffe (more Coffe than last time, A LOT) (**enought coffe for a life V4, version Intermediate Code**)
 
 
 ## Liberías NECESARIAS para correr el programa
@@ -47,33 +47,32 @@ Algunos puntos vistos en este proyecto
   - Una librería de python para imprimir bonito. Si no se tiene instalar en https://pypi.org/project/pprintpp/
 - Terminal
   - Una terminal o programa para correr los programas de python. Puede ser VS Code también.
-- Emoji
-  - Una librería para poner emojis. Instalar en : https://pypi.org/project/emoji/
 
 
 ## Archivos y carpetas
-| No. | Archivo | Propósito/Descripción |
-| --- | --- | --- |
-| 1 | `Python3` |Folder donde esta la gramática, los lexer, parser, etc. Acá dentro también se encuentran los archivos de prueba y lo que se prueba |
-| 2 | `decafAlejandro.tokens` |Tokens generados por ANTLR|
-| 3 |`decafAlejandroLexer.py`  |Es un python generado por ANTLR que contiene el lexer del proyecto|
-| 4 | `decafAlejandroListener.py` |Contiene un listener, es decir, una forma de recorrer el arbol sintáctico generado|
-| 5 | `decafAlejandroParser.py` |el parser generador por ANTLR para el proyecto|
-| 6 | `ErrorClass.py` |Una clase de errores para arrays o errores generales|
-| 7 | `funciones.py` |Un python con funciones generales y útiles|
-| 8 | `mainSemantic.py |programa más importante. Acá se genera la logica, los valores, y se revisan TODAS las reglas semánticas|
-| 9 | `rúbrica_proyecto_1.pdf` |La rubrica del proyecto|
-| 10 | `symbolTable.py` |Clase que contiene TODAS las declaraciones para las tres tablas de simbolos principales: metodos, variables y estructuras|
-| 11 | `Readme.md` |El readme|
-| 12 | `Python3/Programas/simple.decaf` |El programa donde probamos por defecto|
+| No. | Archivo                          | Propósito/Descripción                                                                                                              |
+| --- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `Python3`                        | Folder donde esta la gramática, los lexer, parser, etc. Acá dentro también se encuentran los archivos de prueba y lo que se prueba |
+| 2   | `decafAlejandro.tokens`          | Tokens generados por ANTLR                                                                                                         |
+| 3   | `decafAlejandroLexer.py`         | Es un python generado por ANTLR que contiene el lexer del proyecto                                                                 |
+| 4   | `decafAlejandroListener.py`      | Contiene un listener, es decir, una forma de recorrer el arbol sintáctico generado                                                 |
+| 5   | `decafAlejandroParser.py`        | el parser generador por ANTLR para el proyecto                                                                                     |
+| 6   | `ErrorClass.py`                  | Una clase de errores para arrays o errores generales                                                                               |
+| 7   | `funciones.py`                   | Un python con funciones generales y útiles                                                                                         |
+| 8   |  `mainSemantic.py`                | programa más importante. Acá se genera la logica, los valores, y se revisan TODAS las reglas semánticas                            |
+| 9   | `Gramática V2`         | Tenemos una nueva coleccion de una segunda gramática, esta se usó para eta fase, por ende veremos los mismos listener, tokens, y lexer soloq ue en V2                                                                                                        |
+| 10  | `symbolTable.py`                 | Clase que contiene TODAS las declaraciones para las tres tablas de simbolos principales: metodos, variables y estructuras          |
+| 11  | `NodoBoolean.py`                 | Un nodo para guardar las expresiones de algo complejo como un nodo IF       |
+| 12  | `NodoCodigo.py`                 | Una clase nodo para guardar expresiones y address de las cosas       |
+| 13 | `GUI.py`                 | La interfaz gráfica      |
+| 14  | `Readme.md`                      | El readme                                                                                                                          |
+| 15  | `Python3/Programas/multiple_tests.decaf` | El programa donde probamos por defecto                                                                                             |
 
 
 <br>
 <br>
 
 
-## Ejemplo de un arbol sintáctico simple
-![alt text](ejemploArbol.png "Diagrama UML")
 
 ## Cómo correr el proyecto
 
@@ -82,28 +81,45 @@ Algunos puntos vistos en este proyecto
         class Program
         {
 
-        struct A
+        int A[10];
+
+
+        int Minimo(int i)
         {
-            int a;
-        };
-
-        struct B
-        {
-            int b[5];
-            struct A c;
-        };
-
-        struct A y;
-        struct A z;
-
-
-        int factorial(int n)
-        {
-            if (n==0)
-            {return 1;}
-            else
-            {return  n*factorial(n-1);}
+          int Min;
+          int index;
+          Min = A[i];
+          index = i;
+          while(i<10)
+          {
+            if (A[i]<Min)
+            {
+              Min = A[i];
+              index = i;
+            }
+            i = i + 1;
+          }
+          return index;
         }
+
+        void Ordenar(void)
+        {
+          int i;
+          int j;
+          int temp;
+          i = 0;
+          while(i<10)
+          {
+            int Index;
+            Index = Minimo(i);
+            temp = A[Index];
+            A[Index] = A[i];
+            A[i]=temp;
+            i = i+1;
+          }
+        }
+
+
 
         void OutputInt(int n)
         {
@@ -112,96 +128,33 @@ Algunos puntos vistos en este proyecto
         int InputInt(void)
         {return 0;}
 
-        int ReturnNumber(void)
-        {return z.a;}
-
 
         void main(void)
         {
-            struct B y[5];
-            int i;
-            int j;
-            int k;	
 
+          int i;
+          i = 0;
+          while(i<10)
+          {
+            A[i]=InputInt();
+            i = i+1;		
+          }
+          Ordenar();
+          i = 0;
+          while(i<10)
+          {
+            OutputInt(A[i]);
+            i = i+1;
+          }
 
-            i = 0;
-            j=0;
-            z.a = 3;	
-            while(i<=10)
-            {
-                y[j].b[0]=InputInt();
-                
-                if(y[j].b[0]==5)
-                {
-                    y[j].b[0]=z.a;
-                    k=factorial(ReturnNumber());
-                    OutputInt(k);
-                }
-
-                y[j].c.a=factorial(y[j].b[0]);
-                OutputInt(y[j].c.a);
-                i = i + 1;
-            }
         }
-
 
 
         }
   ```
-- Luego, se debe correr el  programa `mainSemantic.py` y ejecutarlo en una consola. 
-- Luego debes de seleccionar una opciónn del menú
- ```python
-                    '1.😜 Opcion 1: cargar archivo de pruebas y ejecutar'
-                    '2.🤣 Opcion 2: SALIR'
-                    'Elige una opcion'
-                    Introduce un numero entero:
-```
-- Si escogemos el 1 nos pedirá ingresar un nombre de file. ingresaremos el de **simple.decaf** u otro. NOTA: el file debe estar alojado en *Python3/programs/acaFILES*
-```python
-                    Introduce el nombre del .decaf : simple.decaf
-```
-- La salida será una lectura del file y lo analizará semánticamente
-```python
-            '--------------------COMENZANDO REVISIÓN DE PROGRAMA--------------'
-            ' -----> LOS ERRORES APARECEERÁN ABAJO'
-            ''
-            '------------------FINALIZADA REVISIÓN DE PROGRAMA------------------------'
-            'LOS DICCIONARIOS O TABLAS FINALES SON: '
-            ''
-            '----------------------TABLA DE VARIABLES---------------------'
-            {0: ['a', 'int', 'A', 0, 0],
-            1: ['b', 'int', 'B', 0, 0],
-            2: ['c', 'A', 'B', 0, 0],
-            3: ['y', 'A', 'global', 0, 0],
-            4: ['z', 'A', 'global', 0, 0],
-            5: ['n', 'int', 'factorial', 0, 0],
-            6: ['n', 'int', 'OutputInt', 0, 0],
-            7: ['y', 'B', 'main', 0, 0],
-            8: ['i', 'int', 'main', 0, 0],
-            9: ['j', 'int', 'main', 0, 0],
-            10: ['k', 'int', 'main', 0, 0]}
-            ''
-            '----------------------TABLA DE METODOS---------------------'
-            {0: ['struct', 'A', [], False, 'global'],
-            1: ['struct', 'B', [], False, 'global'],
-            2: ['int', 'factorial', ['n'], True, 'global'],
-            3: ['', 'if1', [], False, 'factorial'],
-            4: ['void', 'OutputInt', ['n'], False, 'factorial'],
-            5: ['int', 'InputInt', [], True, 'factorial'],
-            6: ['int', 'ReturnNumber', [], True, 'factorial'],
-            7: ['void', 'main', [], False, 'factorial'],
-            8: ['', 'while2', [], False, 'main'],
-            9: ['', 'if3', [], False, 'while2']}
-            ''
-            '----------------------TABLA DE ESTRUCTURAS---------------------'
-            {0: ['A', 'struct', 'global'],
-            1: ['B', 'struct', 'global'],
-            2: ['b', 'int', 'global'],
-            3: ['y', 'structB', 'factorial']}
-
-            ------------------------> MENU <-----------------------
-```
-- El menú saldrá OTRA vez, dándonos la opción de cambiar de nuevo los valores
+- Luego, se debe correr el  programa `GUI.py` y ejecutarlo en una consola. 
+- Luego se debe de buscar el file con ABRIR file, luego, editar en el espacio lo que necesitemos.
+- Finalmente, presionar COMPILAR INTERMEDIO. Y el código intermedio aparecerá en la parte del texto donde debería.
 
 ## Creditos y Agradecimientos
 
@@ -214,6 +167,7 @@ Course teacher: Bidkar Pojoy
 - Compiladores principios, técnicas y herramientas, 2da Edición - Alfred V. Aho
 - Compañeros de clase
 - More Coffe
+- Coffe machine right next to me
 
 
 ## Licence
