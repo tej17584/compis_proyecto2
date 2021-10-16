@@ -131,13 +131,13 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             for scope in innerArray:
                 innerVar2 = scope.getSymbolFromTable(variable)
                 if innerVar2 != 0:
-                    if(self.metodo_Actual == "GLOBAL"):
+                    if(innerVar2["Scope"]=="GLOBAL"):
                         return innerVar2, "GLOBAL"
                     else:
                         return innerVar2, "ANOTHER"
             return 0
         else:
-            if(len(self.ambitos) == 0):
+            if(innerVar["Scope"]=="GLOBAL"):
                 founded = "GLOBAL"
             else:
                 founded = "ANOTHER"
@@ -232,7 +232,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             size = type_symbol['Size']
             offset = self.scope_Actual.offsetVariables
             self.scope_Actual.AddEntryToTable(
-                parameter['Tipo'], parameter['Id'], size, offset, True)
+                parameter['Tipo'], parameter['Id'], size, offset, True, self.metodo_Actual)
 
     def exitMethod_declr(self, ctx: decafAlejandroV2Parser.Method_declrContext):
         metodo = ctx.method_name().getText()
@@ -279,7 +279,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
                 offset = self.scope_Actual.offsetVariables
 
                 self.scope_Actual.AddEntryToTable(
-                    tipo, id, size, offset, False)
+                    tipo, id, size, offset, False, self.metodo_Actual)
             else:
                 self.tipoNodo[ctx] = self.ERROR
                 self.tipoNodo[ctx.field_var()] = self.ERROR
@@ -337,7 +337,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
                 offset = self.scope_Actual.offsetVariables
 
                 self.scope_Actual.AddEntryToTable(
-                    tipo_array, id, size, offset, False)
+                    tipo_array, id, size, offset, False, self.metodo_Actual)
 
             else:
                 self.tipoNodo[ctx] = self.ERROR
@@ -528,7 +528,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
                     offset = self.scope_Actual.offsetVariables
 
                     self.scope_Actual.AddEntryToTable(
-                        tipo, id, size, offset, False)
+                        tipo, id, size, offset, False, self.metodo_Actual)
 
     def exitField_declr(self, ctx: decafAlejandroV2Parser.Field_declrContext):
         self.tipoNodo[ctx] = self.VOID
@@ -706,7 +706,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
     def generateLabelforArray(self, var, temp):
         innerValue = ''
         if len(var) > 0:
-            if(self.metodo_Actual == "GLOBAL"):
+            if(var["Scope"] == "GLOBAL"):
                 innerValue = f'G[{(temp)}]'
             else:
                 innerValue = f'fp[{(temp)}]'

@@ -26,7 +26,7 @@ class generalSymbolTable():
 
         #print(' -- Nuevo SCOPE --')
 
-    def AddEntryToTable(self, typeValue, idValue, size, offset, isParameter):
+    def AddEntryToTable(self, typeValue, idValue, size, offset, isParameter, scope):
         """
         Agrega un valor a la tabla de simbolos general
         *@param: typeValue: el tipo de valor
@@ -35,7 +35,7 @@ class generalSymbolTable():
         *@param: offset: el offset de ese valor
         *@param: isParameter: bool para el parametro
         """
-        self.dictSimbolos.append({'Tipo': typeValue, 'Id': idValue, 'Size': size, 'Offset': offset, 'IsParameter': isParameter
+        self.dictSimbolos.append({'Tipo': typeValue, 'Id': idValue, 'Size': size, 'Offset': offset, 'IsParameter': isParameter, "Scope": scope
                                   })
         self.offsetVariables += size
 
@@ -63,7 +63,7 @@ class generalSymbolTable():
         transforma un array o valor a tabla
         """
         self.pretty_table.field_names = [
-            'Tipo', 'ID', 'Size', 'Offset', 'IsParameter']
+            'Tipo', 'ID', 'Size', 'Offset', 'IsParameter', "Scope"]
         for i in self.dictSimbolos:
             self.pretty_table.add_row(list(i.values()))
 
