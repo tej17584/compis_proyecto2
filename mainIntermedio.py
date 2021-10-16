@@ -67,6 +67,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
         self.ambitos = []
         self.scope_Actual = None
         self.metodos = []
+        self.metodosV2 = []
         self.metodo_Actual = "GLOBAL"
         self.tablaVariables = dictTableVars()
         self.errores = SemanticError()
@@ -98,6 +99,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
     def addMethodActual(self, metodo):
         self.metodo_Actual = metodo
         self.metodos.append(metodo)
+        self.metodosV2.append(metodo)
 
     def findVar(self, variable):
         """
@@ -568,23 +570,59 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
             innerNode = Nodo(self.contadorGlobalNodos)
             self.contadorGlobalNodos += 1
             innerNode.addCode('')
+            paramName = param.getText()
+            if isinstance(param, decafAlejandroV2Parser.Expr_methodCallContext):
+                paramName = param.method_call().method_name().getText()
+            elif isinstance(param, decafAlejandroV2Parser.Expr_locationContext):
+                if param.location().array_id() is not None:
+                    paramName = param.location().array_id().ID().getText()
             if isinstance(param, decafAlejandroV2Parser.Expr_PrecedenciaMenorContext) or isinstance(param, decafAlejandroV2Parser.Expr_PrecedenciaMaxContext):
                 print("OPERACION")
                 hijo = self.dictCodigoIntermedio[param]
                 innerNode.addCode(hijo.getCode())
-                """ if(len(hijo.getCode().split("\n")) >= 1):
-                    valueTemporal = hijo.getCode().split(
-                    "\n")
-                if(len(hijo.getCode().split("=")) != 0):
-                    valueTemporal = hijo.getCode().split("=")[0].strip() """
                 innerNode.addAddress(hijo.getAddress())
             else:
                 print("LOCATION VAR NORMAL")
-                if self.findVar(param.getText()) == 0:
-                    innerNode.addAddress(param.getText())
+                if self.findVar(paramName) != 0:
+                    variable = self.findVar(paramName)
+                    if("array" in variable["Tipo"]):  # si es array
+                        if param.location().array_id().int_literal():
+                            Expression = self.dictCodigoIntermedio[param.location(
+                            ).array_id().int_literal()]
+                        elif param.location().array_id().var_id():
+                            Expression = self.dictCodigoIntermedio[param.location(
+                            ).array_id().var_id()]
+                        arrayType = variable['Tipo']
+                        arrayType = arrayType.split('array')[-1]
+                        pesoVar = 0
+                        if arrayType == 'int':
+                            pesoVar = 4
+                        elif arrayType == 'char':
+                            pesoVar = 2
+                        elif arrayType == 'boolean':
+                            pesoVar = 1
+                        temp1 = self.generateTemporal()
+                        temp2 = self.generateTemporal()
+                        offset = variable["Offset"]
+                        innerNode.addAddress(
+                            self.generateLabelforArray(variable, temp2))
+                        codigoConcat = ' ' + Expression.getCode() + \
+                            (str(temp1) + ' = ' + str(pesoVar) + ' * ' + Expression.getAddress()) + '\n ' + \
+                            (str(temp2) + ' = ' + str(offset) +
+                             ' + ' + str(temp1)) + '\n'
+                        innerNode.addCode(codigoConcat)
+                    else:
+                        innerNode.addAddress(
+                            self.generateTopeGet(variable["Id"]))
+                elif paramName in self.metodosV2:
+                    method_info = self.tabla_metodos.getSymbolFromTable(
+                        paramName)
+                    codigoConcat = ' CALL ' + paramName + ', ' + \
+                        str(len(method_info["Parameters"])) + '\n'
+                    innerNode.addCode(codigoConcat)
+                    innerNode.addAddress("R")
                 else:
-                    variable = self.findVar(param.getText())
-                    innerNode.addAddress(self.generateTopeGet(variable["Id"]))
+                    innerNode.addAddress(paramName)
             innerArray.append(innerNode)
 
         return innerArray

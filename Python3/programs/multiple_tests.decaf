@@ -8,15 +8,6 @@ class Program {
 			return n*factorial(n-1*8/4-5);
 		}
 	}
-
-	void OutputInt(int n)
-	{
-		int z;
-	}
-
-	int InputInt(void)
-	{return 0;}
-
 	int ReturnNumber(void)
 	{
 		int a;
@@ -36,17 +27,15 @@ class Program {
 
 		while(i<=10)
 		{
-			y[i] = InputInt();
+			
 			if(y[j]==5)
 			{
 				y[j]=2;
-				k=factorial(ReturnNumber());
-				OutputInt(k);
+				k=factorial(33*5-j);
 			}
 
 			y[j]=factorial(y[j]);
-			OutputInt(y[j]);
-			i = i+ 1;
+			
 		}
 	}
 
