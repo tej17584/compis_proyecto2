@@ -91,7 +91,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
 
     def addScope(self):
         self.ambitos.append(self.scope_Actual)
-        self.scope_Actual = generalSymbolTable()
+        self.scope_Actual = generalSymbolTableV2()
 
     def popMethodActual(self):
         self.metodo_Actual = self.metodos.pop()
@@ -195,7 +195,7 @@ class DecafAlejandroPrinter(decafAlejandroV2Listener):
     def enterProgram(self, ctx: decafAlejandroV2Parser.ProgramContext):
         print('----------> INICIO COMPILACION <--------------')
         self.root = ctx
-        self.scope_Actual = generalSymbolTable()
+        self.scope_Actual = generalSymbolTableV2()
 
     def enterMethod_declr(self, ctx: decafAlejandroV2Parser.Method_declrContext):
         metodo = ctx.method_name().getText()

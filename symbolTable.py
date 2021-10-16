@@ -26,6 +26,63 @@ class generalSymbolTable():
 
         #print(' -- Nuevo SCOPE --')
 
+    def AddEntryToTable(self, typeValue, idValue, size, offset, isParameter):
+        """
+        Agrega un valor a la tabla de simbolos general
+        *@param: typeValue: el tipo de valor
+        *@param: scope: el valor del id
+        *@param: size: el size de ese valor
+        *@param: offset: el offset de ese valor
+        *@param: isParameter: bool para el parametro
+        """
+        self.dictSimbolos.append({'Tipo': typeValue, 'Id': idValue, 'Size': size, 'Offset': offset, 'IsParameter': isParameter
+                                  })
+        self.offsetVariables += size
+
+    def getSymbolFromTable(self, variable):
+        """
+        Retorna el valor pasado o 0
+        *@param: variable: el id del valor
+        """
+        innerArray = self.dictSimbolos.copy()
+        innerArray.reverse()
+        for symbol in innerArray:
+            if symbol['Id'] == variable:
+                return symbol
+
+        return 0
+
+    def getSize(self):
+        """
+        Retorna el tamaño de la tabla
+        """
+        return sum(symbol['Size'] for symbol in self.dictSimbolos)
+
+    def valueToTable(self):
+        """
+        transforma un array o valor a tabla
+        """
+        self.pretty_table.field_names = [
+            'Tipo', 'ID', 'Size', 'Offset', 'IsParameter']
+        for i in self.dictSimbolos:
+            self.pretty_table.add_row(list(i.values()))
+
+        print(' --- Tabla simbolos generales ---')
+        print(self.pretty_table)
+        self.pretty_table.clear_rows()
+
+
+class generalSymbolTableV2():
+    def __init__(self):
+        """
+        Init de los métodos de la tabla de simbolos
+        """
+        self.dictSimbolos = []  # diccionario para los simbolos
+        self.offsetVariables = 0  # ofsset de variables y de valores
+        self.pretty_table = PrettyTable()  # instancia de pretty table
+
+        #print(' -- Nuevo SCOPE --')
+
     def AddEntryToTable(self, typeValue, idValue, size, offset, isParameter, scope):
         """
         Agrega un valor a la tabla de simbolos general
